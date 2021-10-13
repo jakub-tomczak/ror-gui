@@ -18,7 +18,7 @@ class AlphaValuesFrame:
         self.root.rowconfigure(1, weight=1)
         self.root.columnconfigure(0, weight=1)
 
-        self.scrollable_content: ScrollableFrame = ScrollableFrame(self.root)
+        self.scrollable_content: ScrollableFrame = ScrollableFrame(self.root, 170)
         self.scrollable_content.grid(row=0, column=0, sticky=tk.NSEW)
 
         self.__alpha_values: List[AlphaValue] = []
@@ -45,7 +45,7 @@ class AlphaValuesFrame:
 
     def __add_alpha_value(self) -> AlphaValueWidget:
         widget = AlphaValueWidget(self.scrollable_content.frame, self.logger, self.__update_on_removal)
-        widget.pack(anchor=tk.NW, fill=tk.X)
+        widget.pack(anchor=tk.NW, fill=tk.X, expand=1)
         self.__alpha_values.append(widget.alpha_value)
         self.scrollable_content.force_scroll_update()
         return widget

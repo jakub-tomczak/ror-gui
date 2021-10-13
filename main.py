@@ -188,7 +188,12 @@ class RORWindow:
             last_tab_id = len(self.main_tab.tabs())-1
             # focus on the last tab
             self.main_tab.select(last_tab_id)
-            self.result_windows[tab] = ResultWindow(tab, self.on_result_close)
+            self.result_windows[tab] = ResultWindow(
+                self.log,
+                self.root,
+                tab,
+                self.on_result_close
+            )
             result = solve_problem(self.dataset.deep_copy(), self.parameters, self.log, self.result_windows[tab].report_progress)
             self.result_windows[tab].set_result(result)
         except Exception as e:
