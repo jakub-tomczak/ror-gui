@@ -1,5 +1,6 @@
-from time import time
+import datetime
 
 
-def get_log_time():
-    return time.strftime("%d-%m-%Y %H-%M-%S")
+def get_log_time() -> str:
+    now = datetime.datetime.now()
+    return now.strftime("%H-%M-%S %d-%m-%Y")

@@ -18,11 +18,9 @@ class ScrolledText(tk.Text):
         self.vbar: ttk.Scrollbar = ttk.Scrollbar(self.frame)
         self.button_frame: ttk.Frame = ttk.Frame(self.frame)
         self.button_frame.pack(side=RIGHT, fill=Y)
-        self.clear_button: ttk.Button = ttk.Button(text="Clear", master=self.button_frame)
+        self.clear_button: ttk.Button = ttk.Button(text="Clear", master=self.button_frame, command=lambda: self.clear())
         self.clear_button.pack(anchor=tk.S, fill=X)
-        self.save_button: ttk.Button = ttk.Button(text="Save", master=self.button_frame, command=lambda: self.set_text("asdsad"))
-        self.save_button.pack(anchor=tk.N, fill=X)
-        self.vbar.pack(side=RIGHT, fill=Y)
+        self.vbar.pack(side=RIGHT, fill=BOTH)
 
         kw.update({'yscrollcommand': self.vbar.set})
         tk.Text.__init__(self, self.frame, **kw)
@@ -49,7 +47,9 @@ class ScrolledText(tk.Text):
                 setattr(self, m, getattr(self.frame, m))
 
     def clear(self):
+        self.configure(state='normal')
         self.delete(1.0, tk.END)
+        self.configure(state='disabled')
 
     def get_text(self):
         text = self.get(1.0, tk.END)
@@ -58,10 +58,13 @@ class ScrolledText(tk.Text):
         return None
 
     def set_text(self, value):
-        print("setting text", value)
         self.clear()
         if value is not None:
+            self.configure(state='normal')
             self.insert(tk.END, value.strip())
+            self.configure(state='disabled')
+            # scroll to the end
+            self.see('end')
 
     def __str__(self):
         return str(self.frame)
