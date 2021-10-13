@@ -247,6 +247,7 @@ class RORWindow:
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text=f'Alpha values:').pack(anchor=tk.N, fill=tk.X)
         self.alpha_values_frame = AlphaValuesFrame(information_box, self.log)
+        self.alpha_values_frame.root.pack(anchor=tk.CENTER)
 
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text=f'Relations').pack(anchor=tk.N, fill=tk.X)
