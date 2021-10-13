@@ -23,7 +23,7 @@ class AlphaValueWidget(ttk.Frame):
                 logger('value must be in range <0.0, 1.0>', Severity.ERROR)
                 return False
             return True
-        except Exception as e:
+        except:
             logger('value must be float value', Severity.ERROR)
             return False
 

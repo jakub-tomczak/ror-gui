@@ -9,6 +9,7 @@ from ror.RORResult import RORResult
 import ror.Relation as relation
 from ror.data_loader import AvailableParameters
 from ror.ror_solver import ProcessingCallbackData, solve_model
+from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.ResultWindow import ResultWindow
 from utils.Table import Table
@@ -36,6 +37,7 @@ class RORWindow:
         self.parameters: Dict[AvailableParameters, float] = None
         self.result_window: ResultWindow = None
         self.alpha_values_frame: AlphaValuesFrame = None
+        self.aggregation_method: AggregationWidget = None
         self.init_gui()
 
     def open_file(self, filename: str):
@@ -285,6 +287,11 @@ class RORWindow:
                 )
                 ttk.Label(
                     intensity_relations_tab, text=f'{index+1}. {label}', wraplength=250, justify="left").pack(anchor=tk.N, fill=tk.X)
+
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        ttk.Label(information_box, text=f'Aggregation method').pack(anchor=tk.N, fill=tk.X)
+        self.aggregation_method = AggregationWidget(information_box)
+
         # bottom tab buttons
         information_box_bottom.columnconfigure(0, weight=1)
         information_box_bottom.columnconfigure(1, weight=1)

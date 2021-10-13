@@ -48,7 +48,6 @@ class AlphaValuesFrame:
         self.add_alpha_value('R', 0.5)
         self.add_alpha_value('S', 1.0)
 
-        print(self.get_all_alpha_values())
 
     def add_alpha_value(self, name: str, value: float) -> AlphaValueWidget:
         if not AlphaValueWidget.validate_name(name, self.logger) or not AlphaValueWidget.validate_value(value, self.logger):
