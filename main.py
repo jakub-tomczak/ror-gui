@@ -6,6 +6,8 @@ from ror.Dataset import Dataset, RORDataset
 from ror.RORResult import RORResult
 import ror.Relation as relation
 from ror.data_loader import AvailableParameters
+from ror.ror_solver import ProcessingCallbackData
+from utils.ResultWindow import ResultWindow
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
 from utils.logging import Severity
@@ -27,7 +29,7 @@ class RORWindow:
         self.current_filename: str = None
         self.dataset: RORDataset = None
         self.parameters: Dict[AvailableParameters, float] = None
-        self.image_windows: Dict[str, ImageDisplay] = dict()
+        self.result_window: ResultWindow = None
         self.init_gui()
 
     def open_file(self, filename: str):
@@ -71,13 +73,12 @@ class RORWindow:
             self.log('Dataset is empty')
 
     def close_file(self):
-        self.table.remove_data(self.dataset)
+        self.table.remove_data()
         self.dataset = None
         self.current_filename = None
         self.parameters = None
-        for image_display in self.image_windows.values():
-            image_display.destroy()
-        self.image_windows = dict()
+        self.result_window.close_window()
+        self.result_window = None
         self.hide_information_tab()
 
     def cancel_changes(self):
@@ -161,31 +162,13 @@ class RORWindow:
         self.log_console.clear()
 
     def solve(self):
-        result: RORResult = None
-
-        def update_calculations_progress(progress: float):
-            self.log(f'progress {progress}')
-            self.root.update()
-
+        self.result_window = ResultWindow(self.root)
         try:
-            result = solve_problem(self.dataset, self.parameters, self.log, update_calculations_progress)
+            result = solve_problem(self.dataset, self.parameters, self.log, self.result_window.report_progress)
+            self.result_window.set_result(result)
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
 
-        # display all ranks
-        if result is not None:
-            # display intermediate ranks, associated with alpha values
-            for rank in result.intermediate_ranks:
-                alpha_value = rank.alpha_value
-                image_path = rank.image_filename
-                if alpha_value.name in self.image_windows and self.image_windows[alpha_value.name] is not None:
-                    # reuse window if still open
-                    self.image_windows[alpha_value.name].change_image(image_path)
-                else:
-                    # create window with image
-                    self.image_windows[alpha_value.name] = ImageDisplay(self.root, image_path, f'{alpha_value.name} rank')
-
-            
 
     '''
     Returns information box that consumes 80% of the height of the information tab

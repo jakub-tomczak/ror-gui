@@ -3,6 +3,7 @@ from typing import List
 from ror.Dataset import Dataset
 import tksheet
 import numpy as np
+import pandas as pd
 
 
 class Table(tksheet.Sheet):
@@ -27,11 +28,8 @@ class Table(tksheet.Sheet):
             )
         )
 
-    def remove_data(self, data: Dataset):
-        for id in range(len(data.criteria)+1):
-            self.delete_column_position(id)
-        for id in range(len(data.alternatives)):
-            self.delete_row_position(id)
+    def remove_data(self):
+        self.destroy()
 
 
     def set_data(self, data: Dataset):
@@ -40,4 +38,14 @@ class Table(tksheet.Sheet):
         self.headers(newheaders=headers)
         ids = [[alternative] for alternative in data.alternatives]
         data_with_alternative_names = np.hstack([ids, data.matrix])
+        self.set_sheet_data(data_with_alternative_names.tolist())
+
+    def set_pandas_data(self, data: pd.DataFrame):
+        headers=['alternative']
+        headers.extend(list(data.columns))
+        self.headers(headers)
+        numpy_data = data.to_numpy()
+        # add alternative names
+        ids = [[id] for id in list(data.index)]
+        data_with_alternative_names = np.hstack([ids, numpy_data])
         self.set_sheet_data(data_with_alternative_names.tolist())
