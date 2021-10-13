@@ -44,8 +44,10 @@ class ResultWindow(tk.Frame):
 
     def __set_progress(self, value: int, status: str):
         self.__progress_bar.report_progress(value, status)
-        if value == 100:
+        
+        if self.__progress_bar is not None and value == 100:
             self.__progress_bar.destroy()
+            self.__progress_bar = None
 
     def report_progress(self, data: ProcessingCallbackData):
         self.__set_progress(floor(data.progress*100), data.status)
