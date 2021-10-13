@@ -17,6 +17,6 @@ def solve_problem(
 
     result = solve_model(dataset, parameters, calculations_callback)
 
-    logger_callback(f'Final rank is {result.final_rank}')
+    logger_callback('Finished calculations')
 
     return result
