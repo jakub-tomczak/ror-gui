@@ -1,12 +1,15 @@
 import tkinter as tk
-from tkinter import ttk
-from typing import Dict, Tuple
+from tkinter import DoubleVar, Widget, ttk
+from tkinter.constants import N
+from typing import Dict, List, Tuple
+from pandas.core import frame
 
 from ror.Dataset import Dataset, RORDataset
 from ror.RORResult import RORResult
 import ror.Relation as relation
 from ror.data_loader import AvailableParameters
-from ror.ror_solver import ProcessingCallbackData
+from ror.ror_solver import ProcessingCallbackData, solve_model
+from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.ResultWindow import ResultWindow
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
@@ -15,6 +18,8 @@ from utils.solver_helpers import solve_problem
 from utils.tk.ScrolledText import ScrolledText
 from utils.time import get_log_time
 from utils.file_handler import get_file, open_file
+import utils.AlphaValue as gui_alpha_value
+from utils.AlphaValueWidget import AlphaValueWidget
 
 
 class RORWindow:
@@ -30,6 +35,7 @@ class RORWindow:
         self.dataset: RORDataset = None
         self.parameters: Dict[AvailableParameters, float] = None
         self.result_window: ResultWindow = None
+        self.alpha_values_frame: AlphaValuesFrame = None
         self.init_gui()
 
     def open_file(self, filename: str):
@@ -44,6 +50,7 @@ class RORWindow:
         except Exception as e:
             self.current_filename = None
             self.log(f"Failed to read file. Exception {e}")
+            raise e
 
     def open_file_dialog(self):
         try:
@@ -77,9 +84,12 @@ class RORWindow:
         self.dataset = None
         self.current_filename = None
         self.parameters = None
-        self.result_window.close_window()
-        self.result_window = None
+        if self.result_window is not None:
+            self.result_window.close_window()
+            self.result_window = None
+        self.alpha_values_frame = None
         self.hide_information_tab()
+
 
     def cancel_changes(self):
         if self.current_filename is not None:
@@ -199,20 +209,29 @@ class RORWindow:
         information_box, information_box_bottom = self.create_information_tab()
         ttk.Label(information_box, text='Information about opened file').pack(
             anchor=tk.N, fill=tk.X)
-        ttk.Label(information_box, text='1. Filename: ').pack(
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        ttk.Label(information_box, text='Filename: ').pack(
             anchor=tk.N, fill=tk.X)
         ttk.Label(information_box, text=filename).pack(anchor=tk.N, fill=tk.X)
-        ttk.Label(information_box, text=f'2. Number of alternatives: {len(self.dataset.alternatives)}').pack(
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        ttk.Label(information_box, text=f'Number of alternatives: {len(self.dataset.alternatives)}').pack(
             anchor=tk.N, fill=tk.X)
-        ttk.Label(information_box, text=f'3. Number of criteria: {len(self.dataset.criteria)}').pack(
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        ttk.Label(information_box, text=f'Number of criteria: {len(self.dataset.criteria)}').pack(
             anchor=tk.N, fill=tk.X)
-        ttk.Label(information_box, text=f'4. Criteria:').pack(
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        ttk.Label(information_box, text=f'Criteria:').pack(
             anchor=tk.N, fill=tk.X)
         for index, (criterion_name, criterion_type) in enumerate(self.dataset.criteria):
             type_name = 'cost' if criterion_type == Dataset.CRITERION_TYPES['cost'] else 'gain'
             ttk.Label(
-                information_box, text=f'4.{index+1}. {criterion_name}, type: {type_name}').pack(anchor=tk.N, fill=tk.X)
+                information_box, text=f'{index+1}. {criterion_name}, type: {type_name}').pack(anchor=tk.N, fill=tk.X)
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        ttk.Label(information_box, text=f'Alpha values:').pack(anchor=tk.N, fill=tk.X)
+        self.alpha_values_frame = AlphaValuesFrame(information_box, self.log)
 
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        ttk.Label(information_box, text=f'Relations').pack(anchor=tk.N, fill=tk.X)
         tab_control = ttk.Notebook(information_box)
         preference_relations_tab = ttk.Frame(tab_control)
         intensity_relations_tab = ttk.Frame(tab_control)
