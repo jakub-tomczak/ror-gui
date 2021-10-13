@@ -1,1 +1,3 @@
 tksheet
+numpy
+git+git://github.com/jakub-tomczak/ror#egg=ror
