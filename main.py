@@ -7,6 +7,7 @@ import ror.Relation as relation
 from ror.data_loader import AvailableParameters
 from utils.Table import Table
 from utils.logging import Severity
+from utils.solver_helpers import solve_problem
 from utils.tk.ScrolledText import ScrolledText
 from utils.time import get_log_time
 from utils.file_handler import get_file, open_file
@@ -152,6 +153,12 @@ class RORWindow:
 
     def clear_log(self):
         self.log_console.clear()
+
+    def solve(self):
+        try:
+            solve_problem(self.dataset, self.parameters, self.log)
+        except Exception as e:
+            self.log(f'Failed to solve problem: {e}')
 
     '''
     Returns information box that consumes 80% of the height of the information tab
