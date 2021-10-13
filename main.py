@@ -1,29 +1,20 @@
-from datetime import date
 import tkinter as tk
-from tkinter import DoubleVar, Widget, ttk
-from tkinter.constants import N
-from typing import Dict, List, Tuple
-from numpy import ceil
-from pandas.core import frame
+from tkinter import ttk
+from typing import Dict, Tuple
+import os.path as path
 
 from ror.Dataset import Dataset, RORDataset
-from ror.RORResult import RORResult
 import ror.Relation as relation
 from ror.data_loader import AvailableParameters
-from ror.ror_solver import ProcessingCallbackData, solve_model
 from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.DataTab import DataTab
 from utils.ResultWindow import ResultWindow
-from utils.Table import Table
-from utils.image_helper import ImageDisplay
 from utils.logging import Severity
 from utils.solver_helpers import solve_problem
 from utils.tk.ScrolledText import ScrolledText
 from utils.time import get_log_time
 from utils.file_handler import get_file, open_file
-import utils.AlphaValue as gui_alpha_value
-from utils.AlphaValueWidget import AlphaValueWidget
 
 
 class RORWindow:
@@ -84,7 +75,8 @@ class RORWindow:
                 self.dataset.save_to_file(f'{name}.{format}')
                 self.log(f'Saved dataset to {name}.{format}')
             except Exception as e:
-                self.log(f'Failed to save a file: {e}', severity=Severity.ERROR)
+                self.log(
+                    f'Failed to save a file: {e}', severity=Severity.ERROR)
         else:
             self.log('Dataset is empty')
 
@@ -96,18 +88,13 @@ class RORWindow:
         self.current_filename = None
         self.parameters = None
         self.alpha_values_frame = None
-        if self.result_windows is not None:
-            result_windows = list(self.result_windows.values())
-            for result in result_windows:
-                result.close_window()
-        self.result_windows = dict()
         self.hide_information_tab()
-
 
     def cancel_changes(self):
         if self.current_filename is not None:
             self.open_file(self.current_filename)
-            self.log(f'Canceleed changes - reopened file {self.current_filename}')
+            self.log(
+                f'Canceleed changes - reopened file {self.current_filename}')
         else:
             self.log('No file is currently opened')
 
@@ -184,7 +171,8 @@ class RORWindow:
             from datetime import datetime
             now = datetime.now()
             now_str = now.strftime("%H-%M-%S")
-            self.main_tab.add(tab, text=f'Result {now_str}')
+            self.main_tab.add(
+                tab, text=f'Result {now_str}, {self.current_filename.split(path.sep)[-1]}')
             last_tab_id = len(self.main_tab.tabs())-1
             # focus on the last tab
             self.main_tab.select(last_tab_id)
@@ -194,7 +182,8 @@ class RORWindow:
                 tab,
                 self.on_result_close
             )
-            result = solve_problem(self.dataset.deep_copy(), self.parameters, self.log, self.result_windows[tab].report_progress)
+            result = solve_problem(self.dataset.deep_copy(
+            ), self.parameters, self.log, self.result_windows[tab].report_progress)
             self.result_windows[tab].set_result(result)
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
@@ -207,6 +196,7 @@ class RORWindow:
     Returns information box that consumes 80% of the height of the information tab
     and information bottom box that takes 10% of the height of the information tab
     '''
+
     def create_information_tab(self) -> Tuple[ttk.Frame, ttk.Frame]:
         if 'information' in self.root_frames:
             self.root_frames['information'].destroy()
@@ -250,12 +240,14 @@ class RORWindow:
             ttk.Label(
                 information_box, text=f'{index+1}. {criterion_name}, type: {type_name}').pack(anchor=tk.N, fill=tk.X)
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
-        ttk.Label(information_box, text=f'Alpha values:').pack(anchor=tk.N, fill=tk.X)
+        ttk.Label(information_box, text=f'Alpha values:').pack(
+            anchor=tk.N, fill=tk.X)
         self.alpha_values_frame = AlphaValuesFrame(information_box, self.log)
         self.alpha_values_frame.root.pack(anchor=tk.CENTER)
 
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
-        ttk.Label(information_box, text=f'Relations').pack(anchor=tk.N, fill=tk.X)
+        ttk.Label(information_box, text=f'Relations').pack(
+            anchor=tk.N, fill=tk.X)
         tab_control = ttk.Notebook(information_box)
         preference_relations_tab = ttk.Frame(tab_control)
         intensity_relations_tab = ttk.Frame(tab_control)
@@ -311,7 +303,8 @@ class RORWindow:
                     intensity_relations_tab, text=f'{index+1}. {label}', wraplength=250, justify="left").pack(anchor=tk.N, fill=tk.X)
 
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
-        ttk.Label(information_box, text=f'Aggregation method').pack(anchor=tk.N, fill=tk.X)
+        ttk.Label(information_box, text=f'Aggregation method').pack(
+            anchor=tk.N, fill=tk.X)
         self.aggregation_method = AggregationWidget(information_box)
 
         # bottom tab buttons
@@ -321,24 +314,24 @@ class RORWindow:
         information_box_bottom.columnconfigure(3, weight=1)
         information_box_bottom.rowconfigure(0, weight=1)
         ttk.Button(
-                master=information_box_bottom,
-                text='Solve',
-                command=lambda: self.solve()
+            master=information_box_bottom,
+            text='Solve',
+            command=lambda: self.solve()
         ).grid(column=0, row=0)
         ttk.Button(
-                master=information_box_bottom,
-                text='Save file',
-                command=lambda: self.save_file()
+            master=information_box_bottom,
+            text='Save file',
+            command=lambda: self.save_file()
         ).grid(column=1, row=0)
         ttk.Button(
-                master=information_box_bottom,
-                text='Cancel changes',
-                command=lambda: self.cancel_changes()
+            master=information_box_bottom,
+            text='Cancel changes',
+            command=lambda: self.cancel_changes()
         ).grid(column=2, row=0)
         ttk.Button(
-                master=information_box_bottom,
-                text='Close file',
-                command=lambda: self.close_file()
+            master=information_box_bottom,
+            text='Close file',
+            command=lambda: self.close_file()
         ).grid(column=3, row=0)
 
     def hide_information_tab(self):
@@ -349,9 +342,9 @@ class RORWindow:
         information_box_bottom.columnconfigure(0, weight=1)
         information_box_bottom.rowconfigure(0, weight=1)
         ttk.Button(
-                master=information_box_bottom,
-                text='Open file',
-                command=lambda: self.open_file_dialog()
+            master=information_box_bottom,
+            text='Open file',
+            command=lambda: self.open_file_dialog()
         ).grid(column=0, row=0)
 
     def log(self, message: str, severity: Severity = Severity.INFO):
