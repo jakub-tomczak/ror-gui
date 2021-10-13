@@ -58,8 +58,11 @@ class RORWindow:
             if len(splited) != 2:
                 self.log('Failed to save file')
             name = splited[0]
-            self.dataset.save_to_file(f'{name}.{format}')
-            self.log(f'Saved dataset to {name}.{format}')
+            try:
+                self.dataset.save_to_file(f'{name}.{format}')
+                self.log(f'Saved dataset to {name}.{format}')
+            except Exception as e:
+                self.log(f'Failed to save a file: {e}', severity=Severity.ERROR)
         else:
             self.log('Dataset is empty')
 
@@ -292,7 +295,7 @@ class RORWindow:
         '''
         if self.log_console is None:
             return
-        data = f'[{get_log_time()}][{severity}]: {message}\n'
+        data = f'[{get_log_time()}][{severity.value}]: {message}\n'
         # hack with changing state - to make log console readonly
         # set state to normal to be able to add a new text
         self.log_console.configure(state='normal')
