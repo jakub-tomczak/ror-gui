@@ -27,6 +27,12 @@ class Table(tksheet.Sheet):
             )
         )
 
+    def remove_data(self, data: Dataset):
+        for id in range(len(data.criteria)+1):
+            self.delete_column_position(id)
+        for id in range(len(data.alternatives)):
+            self.delete_row_position(id)
+
 
     def set_data(self, data: Dataset):
         headers = ["id"]
