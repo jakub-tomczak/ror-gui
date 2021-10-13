@@ -1,7 +1,9 @@
+from datetime import date
 import tkinter as tk
 from tkinter import DoubleVar, Widget, ttk
 from tkinter.constants import N
 from typing import Dict, List, Tuple
+from numpy import ceil
 from pandas.core import frame
 
 from ror.Dataset import Dataset, RORDataset
@@ -11,6 +13,7 @@ from ror.data_loader import AvailableParameters
 from ror.ror_solver import ProcessingCallbackData, solve_model
 from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
+from utils.DataTab import DataTab
 from utils.ResultWindow import ResultWindow
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
@@ -28,21 +31,25 @@ class RORWindow:
         self.root: tk.Tk = tk.Tk()
         self.simulation_text = tk.StringVar()
         self.log_console: ScrolledText = None
-        self.table: Table = None
+        self.table: DataTab = None
         self.root_frames: Dict[str, ttk.Frame] = dict()
         self.open_default_file_button: ttk.Button = None
         self.debug: bool = True
         self.current_filename: str = None
         self.dataset: RORDataset = None
         self.parameters: Dict[AvailableParameters, float] = None
-        self.result_window: ResultWindow = None
+        self.result_windows: dict[tk.Frame, ResultWindow] = dict()
         self.alpha_values_frame: AlphaValuesFrame = None
         self.aggregation_method: AggregationWidget = None
+        self.main_tab: ttk.Notebook = None
         self.init_gui()
 
     def open_file(self, filename: str):
         try:
             loading_result = open_file(filename)
+            # close old file
+            self.close_file()
+            # open new file
             self.dataset = loading_result.dataset
             self.parameters = loading_result.parameters
             self.table.set_data(self.dataset)
@@ -82,14 +89,18 @@ class RORWindow:
             self.log('Dataset is empty')
 
     def close_file(self):
-        self.table.remove_data()
+        self.table.clean_data()
         self.dataset = None
+        if self.current_filename is not None and self.current_filename != '':
+            self.log(f'Closed file {self.current_filename}')
         self.current_filename = None
         self.parameters = None
-        if self.result_window is not None:
-            self.result_window.close_window()
-            self.result_window = None
         self.alpha_values_frame = None
+        if self.result_windows is not None:
+            result_windows = list(self.result_windows.values())
+            for result in result_windows:
+                result.close_window()
+        self.result_windows = dict()
         self.hide_information_tab()
 
 
@@ -109,8 +120,6 @@ class RORWindow:
         save_file_menu = tk.Menu(filemenu)
         save_file_menu.add_command(
             label="Save to ror file (data with preferences)", command=lambda: self.save_file())
-        # save_file_menu.add_command(
-        #     label="Save lp file", command=lambda: print("saving lp file"))
         filemenu.add_cascade(label="Save...", menu=save_file_menu)
         menu.add_cascade(label="File", menu=filemenu)
 
@@ -120,12 +129,14 @@ class RORWindow:
             label='Clear log', command=lambda: self.log_console.clear(), accelerator="F1")
 
     def init_gui(self):
-        self.root.columnconfigure(0, weight=6)
-        self.root.columnconfigure(1, weight=6)
+        self.root.columnconfigure(0, weight=9)
+        self.root.columnconfigure(1, weight=1)
         self.root.rowconfigure(0, weight=5)
         self.root.rowconfigure(1, weight=1)
-        self.root.minsize(1200, 800)
-        self.root.geometry("1200x800")
+        screen_width = int(self.root.winfo_screenwidth()*.9)
+        screen_height = int(self.root.winfo_screenheight()*.9)
+        self.root.minsize(screen_width, screen_height)
+        self.root.geometry(f"{screen_width}x{screen_height}")
         self.root.title('ROR')
 
         if self.debug:
@@ -136,19 +147,11 @@ class RORWindow:
                     '/Users/jjtom/Jakub/ror/ror/problems/buses_small.txt')
             ).grid(column=1, row=1)
 
-        # data frame
-        data_frame = ttk.Frame(self.root, padding=2)
-        data_frame.columnconfigure(0, weight=1)
-        data_frame.rowconfigure(0, weight=1)
-        data_frame.rowconfigure(1, weight=9)
-        data_frame.grid(column=0, row=0, sticky=(tk.NSEW))
-        ttk.Label(data_frame, text='Data')\
-            .grid(row=0, column=0, sticky=(tk.N, tk.W))
-        self.table = Table(data_frame)
-        self.table.grid(column=0, row=1, sticky=(tk.NSEW))
-        self.root_frames['data'] = self.table
+        self.main_tab = ttk.Notebook(self.root)
+        self.main_tab.grid(row=0, column=0, sticky=tk.NSEW)
+        self.table = DataTab(self.main_tab)
+        self.main_tab.add(self.table, text='Data')
 
-        # frames on the right
         # log_console
         log_console_frame = ttk.Frame(self.root, padding=2)
         log_console_columnspan = 1 if self.debug else 2
@@ -174,17 +177,30 @@ class RORWindow:
         self.log_console.clear()
 
     def solve(self):
-        self.result_window = ResultWindow(self.root)
         try:
-            result = solve_problem(self.dataset, self.parameters, self.log, self.result_window.report_progress)
-            self.result_window.set_result(result)
+            tab = ttk.Frame(self.main_tab)
+            tab.rowconfigure(0, weight=1)
+            tab.columnconfigure(0, weight=1)
+            from datetime import datetime
+            now = datetime.now()
+            now_str = now.strftime("%H-%M-%S")
+            self.main_tab.add(tab, text=f'Result {now_str}')
+            last_tab_id = len(self.main_tab.tabs())-1
+            # focus on the last tab
+            self.main_tab.select(last_tab_id)
+            self.result_windows[tab] = ResultWindow(tab, self.on_result_close)
+            result = solve_problem(self.dataset, self.parameters, self.log, self.result_windows[tab].report_progress)
+            self.result_windows[tab].set_result(result)
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
+            raise e
 
-
+    def on_result_close(self, tab_frame: tk.Frame):
+        self.result_windows[tab_frame].master.destroy()
+        del self.result_windows[tab_frame]
     '''
     Returns information box that consumes 80% of the height of the information tab
-    and informatino bottom box that takes 10% of the height of the information tab
+    and information bottom box that takes 10% of the height of the information tab
     '''
     def create_information_tab(self) -> Tuple[ttk.Frame, ttk.Frame]:
         if 'information' in self.root_frames:

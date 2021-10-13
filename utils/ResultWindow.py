@@ -1,6 +1,7 @@
 from math import floor
+from os import close
 import tkinter as tk
-from typing import Dict
+from typing import Callable, Dict
 from ror.RORResult import RORResult
 from ror.ror_solver import ProcessingCallbackData
 
@@ -9,14 +10,13 @@ from utils.Table import Table
 from utils.image_helper import ImageDisplay
 
 
-class ResultWindow(tk.Toplevel):
-    def __init__(self, root: tk.Tk):
-        tk.Toplevel.__init__(self, master=root)
+class ResultWindow(tk.Frame):
+    def __init__(self, root: tk.Tk, close_callback: Callable[[tk.Frame], None] = None):
+        tk.Frame.__init__(self, master=root)
         self.image_windows: Dict[str, ImageDisplay] = dict()
-        
-        self.geometry('1200x675')
         self.__progress_bar: ProgressBar = None
         self.__results_data: Table = None
+        self.__close_callback = close_callback
 
         self.init_gui()
 
@@ -29,6 +29,8 @@ class ResultWindow(tk.Toplevel):
         self.__progress_bar.grid(row=0, column=0, columnspan=2, rowspan=2)
         tk.Button(self, text='Close solution', command=self.close_window)\
             .grid(column=0, columnspan=2, row=1)
+        self.grid(row=0, column=0, sticky=tk.NSEW)
+        self.update()
 
     def __set_progress(self, value: int, status: str):
         self.__progress_bar.report_progress(value, status)
@@ -71,4 +73,6 @@ class ResultWindow(tk.Toplevel):
         if self.__results_data is not None:
             self.__results_data.destroy()
             self.__results_data = None
+        if self.__close_callback is not None:
+            self.__close_callback(self.master)
         self.destroy()
