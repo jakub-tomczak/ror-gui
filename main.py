@@ -3,9 +3,11 @@ from tkinter import ttk
 from typing import Dict, Tuple
 
 from ror.Dataset import Dataset, RORDataset
+from ror.RORResult import RORResult
 import ror.Relation as relation
 from ror.data_loader import AvailableParameters
 from utils.Table import Table
+from utils.image_helper import ImageDisplay
 from utils.logging import Severity
 from utils.solver_helpers import solve_problem
 from utils.tk.ScrolledText import ScrolledText
@@ -25,6 +27,7 @@ class RORWindow:
         self.current_filename: str = None
         self.dataset: RORDataset = None
         self.parameters: Dict[AvailableParameters, float] = None
+        self.image_windows: Dict[str, ImageDisplay] = dict()
         self.init_gui()
 
     def open_file(self, filename: str):
@@ -72,6 +75,9 @@ class RORWindow:
         self.dataset = None
         self.current_filename = None
         self.parameters = None
+        for image_display in self.image_windows.values():
+            image_display.destroy()
+        self.image_windows = dict()
         self.hide_information_tab()
 
     def cancel_changes(self):
@@ -111,10 +117,10 @@ class RORWindow:
 
         if self.debug:
             self.open_default_file_button = ttk.Button(
-                text="Open buses.txt",
+                text="Open buses_small.txt",
                 master=self.root,
                 command=lambda: self.open_file(
-                    '/Users/jjtom/Jakub/ror/ror/problems/buses.txt')
+                    '/Users/jjtom/Jakub/ror/ror/problems/buses_small.txt')
             ).grid(column=1, row=1)
 
         # data frame
@@ -155,10 +161,31 @@ class RORWindow:
         self.log_console.clear()
 
     def solve(self):
+        result: RORResult = None
+
+        def update_calculations_progress(progress: float):
+            self.log(f'progress {progress}')
+            self.root.update()
+
         try:
-            solve_problem(self.dataset, self.parameters, self.log)
+            result = solve_problem(self.dataset, self.parameters, self.log, update_calculations_progress)
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
+
+        # display all ranks
+        if result is not None:
+            # display intermediate ranks, associated with alpha values
+            for rank in result.intermediate_ranks:
+                alpha_value = rank.alpha_value
+                image_path = rank.image_filename
+                if alpha_value.name in self.image_windows and self.image_windows[alpha_value.name] is not None:
+                    # reuse window if still open
+                    self.image_windows[alpha_value.name].change_image(image_path)
+                else:
+                    # create window with image
+                    self.image_windows[alpha_value.name] = ImageDisplay(self.root, image_path, f'{alpha_value.name} rank')
+
+            
 
     '''
     Returns information box that consumes 80% of the height of the information tab
