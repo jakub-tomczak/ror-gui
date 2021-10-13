@@ -1,9 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 from typing import Dict
+
+from ror.Dataset import Dataset
 from utils.Table import Table
 from utils.tk.ScrolledText import ScrolledText
 from utils.time import get_log_time
+from utils.file_handler import open_file
 
 
 class RORWindow:
@@ -11,15 +14,23 @@ class RORWindow:
         self.root: tk.Tk = tk.Tk()
         self.simulation_text = tk.StringVar()
         self.log_console: ScrolledText = None
+        self.table: Table = None
         self.root_frames: Dict[str, ttk.Frame] = dict()
         
         self.init_gui()
+
+    def open_file_dialog(self):
+        try:
+            dataset: Dataset = open_file()
+            self.table.set_data(dataset)
+        except:
+            self.log_console.set_text("Failed to read file.")
 
     def init_menu(self):
         menu = tk.Menu(self.root)
         self.root.config(menu=menu)
         filemenu = tk.Menu(menu)
-        filemenu.add_command(label="Open file...", command=lambda : self.root_frames["data"].set_data())
+        filemenu.add_command(label="Open file...", command=self.open_file_dialog, accelerator="Control+O")
         save_file_menu = tk.Menu(filemenu)
         save_file_menu.add_command(label="Save to ror file (data with preferences)", command=lambda: print("saving ror file"))
         save_file_menu.add_command(label="Save lp file", command=lambda: print("saving lp file"))
@@ -47,9 +58,9 @@ class RORWindow:
         data_frame.grid(column=1, row=0, sticky=(tk.NSEW), ipady=2, ipadx=2)
         ttk.Label(data_frame, text='Data')\
             .grid(row=0, column=0, sticky=(tk.N, tk.W))
-        table = Table(data_frame)
-        table.grid(column=0, row=1, sticky=(tk.NSEW))
-        self.root_frames['data'] = table
+        self.table = Table(data_frame)
+        self.table.grid(column=0, row=1, sticky=(tk.NSEW))
+        self.root_frames['data'] = self.table
 
 
         # preferences frame

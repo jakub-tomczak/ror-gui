@@ -1,5 +1,8 @@
 from tkinter import ttk
+from typing import List
+from ror.Dataset import Dataset
 import tksheet
+import numpy as np
 
 
 class Table(tksheet.Sheet):
@@ -25,5 +28,10 @@ class Table(tksheet.Sheet):
         )
 
 
-    def set_data(self):
-        self.set_sheet_data([[f"{ri+cj}" for cj in range(4)] for ri in range(1)])
+    def set_data(self, data: Dataset):
+        headers = ["id"]
+        headers.extend([criterion_name for (criterion_name, _) in data.criteria])
+        self.headers(newheaders=headers)
+        ids = [[alternative] for alternative in data.alternatives]
+        data_with_alternative_names = np.hstack([ids, data.matrix])
+        self.set_sheet_data(data_with_alternative_names.tolist())
