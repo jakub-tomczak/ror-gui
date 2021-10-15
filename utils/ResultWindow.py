@@ -46,7 +46,6 @@ class ResultWindow(tk.Frame):
         tk.Button(self, text='Close solution', command=self.close_window)\
             .grid(column=0, columnspan=2, row=2)
         self.ranks_tab = ttk.Notebook(self)
-        self.ranks_tab.grid(row=0, column=1, rowspan=2, sticky=tk.NSEW)
         self.grid(row=0, column=0, sticky=tk.NSEW)
         self.update()
 
@@ -94,6 +93,9 @@ class ResultWindow(tk.Frame):
             data_frame = tk.Frame(self)
             data_frame.grid(row=0, column=0, sticky=tk.NSEW)
             tk.Label(data_frame, text='Data - final result').pack(anchor=tk.N, fill=tk.BOTH, expand=1)
+
+            # display ranks
+            self.ranks_tab.grid(row=0, column=1, rowspan=2, sticky=tk.NSEW)
 
             self.__results_data = Table(data_frame)
             self.__results_data.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
