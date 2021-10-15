@@ -4,6 +4,7 @@ import logging
 from typing import Callable
 import PIL.Image
 import PIL.ImageTk
+from utils.ScrollableFrame import ScrollableFrame
 
 from utils.logging import Severity
 
@@ -20,7 +21,12 @@ class ImageDisplay(tk.Frame):
         self.__image_path: str = image_path
         self.__image: PIL.ImageTk.PhotoImage = None
         self.__image_name = image_name
+        self.__scroll_bar: ScrollableFrame = ScrollableFrame(self, 200)
         self.__display_image()
+
+    @property
+    def image_name(self) -> str:
+        return self.__image_name
 
     def __copy_text_to_clipboard(self, event):
         # get field value from event, but remove line copy text label and return at end
@@ -53,9 +59,11 @@ class ImageDisplay(tk.Frame):
         image_path_label = tk.Label(self, text=f'Path: {self.__image_path} (click to copy)', font=("Arial", 10))
         image_path_label.pack(anchor=tk.NW, fill=tk.X)
         image_path_label.bind("<Button-1>", self.__copy_text_to_clipboard)
+        # pack scrollbar after labels to have labels above canvas
+        self.__scroll_bar.pack(side='top', fill=tk.BOTH, expand=1)
 
-        cv = tk.Canvas(master=self, width=ImageDisplay.IMAGE_WIDTH+50, height=ImageDisplay.IMAGE_HEIGHT+100)
-        cv.pack(side='top', fill=tk.BOTH, expand=1)
+        cv = tk.Canvas(master=self.__scroll_bar.frame, width=ImageDisplay.IMAGE_WIDTH+50, height=ImageDisplay.IMAGE_HEIGHT+100)
+        cv.pack(anchor='center', side='top', fill=tk.BOTH, expand=1)
         cv.create_image(0, 0, image=self.__image, anchor='nw')
 
 

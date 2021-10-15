@@ -184,7 +184,7 @@ class RORWindow:
             )
             result = solve_problem(self.dataset.deep_copy(
             ), self.parameters, self.log, self.result_windows[tab].report_progress)
-            self.result_windows[tab].set_result(result)
+            self.result_windows[tab].set_result(result, self.dataset.alternatives)
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
             raise e
