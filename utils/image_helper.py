@@ -10,8 +10,8 @@ from utils.logging import Severity
 
 class ImageDisplay(tk.Frame):
     # for rescaling purposes
-    IMAGE_WIDTH=150
-    IMAGE_HEIGHT=500
+    IMAGE_WIDTH=250
+    IMAGE_HEIGHT=600
     CLICK_TO_COPY_LABEL = '(click to copy)'
 
     def __init__(self, logger: Callable[[str, Severity], None], window_object: tk.Tk, root: tk.Tk, image_path: str, image_name: str):
@@ -21,7 +21,8 @@ class ImageDisplay(tk.Frame):
         self.__image_path: str = image_path
         self.__image: PIL.ImageTk.PhotoImage = None
         self.__image_name = image_name
-        self.__scroll_bar: ScrollableFrame = ScrollableFrame(self, 200)
+        self.__scroll_bar: ScrollableFrame = ScrollableFrame(self, ImageDisplay.IMAGE_WIDTH+30)
+        # print(image_name, 'created scrollbar', id(self.__scroll_bar))
         self.__display_image()
 
     @property
@@ -45,7 +46,8 @@ class ImageDisplay(tk.Frame):
         width = self.__image.width()
         height = self.__image.height()
 
-        rescaling_coeff = ImageDisplay.IMAGE_WIDTH / width if width > height else ImageDisplay.IMAGE_HEIGHT / height
+        # resize so all images have the same width
+        rescaling_coeff = ImageDisplay.IMAGE_WIDTH / width # if width > height else ImageDisplay.IMAGE_HEIGHT / height
         target_width = width * rescaling_coeff
         target_height = height * rescaling_coeff
         logging.debug(f'rescaling coeff {rescaling_coeff}, oryginal: {width}x{height}, res {width/height}, resized: {target_width}x{target_height}, res {target_width/target_height}')
@@ -62,7 +64,7 @@ class ImageDisplay(tk.Frame):
         # pack scrollbar after labels to have labels above canvas
         self.__scroll_bar.pack(side='top', fill=tk.BOTH, expand=1)
 
-        cv = tk.Canvas(master=self.__scroll_bar.frame, width=ImageDisplay.IMAGE_WIDTH+50, height=ImageDisplay.IMAGE_HEIGHT+100)
+        cv = tk.Canvas(master=self.__scroll_bar.frame, width=target_width + 20, height=target_height + 100)
         cv.pack(anchor='center', side='top', fill=tk.BOTH, expand=1)
         cv.create_image(0, 0, image=self.__image, anchor='nw')
 

@@ -61,11 +61,20 @@ class ResultWindow(tk.Frame):
         self.update()
 
     def __add_image(self, image: ImageDisplay):
-        self.ranks_tab.add(image, text=f'{image.image_name}')
+        self.ranks_tab.add(image, text=f'{image.image_name}', compound=tk.TOP, sticky=tk.NSEW, underline=2)
 
     def set_result(self, result: RORResult, alternatives: List[str]):
         # display all ranks
         if result is not None:
+            # display ranks
+            # notebook tabs exchanges
+            # however scrollbar in each tab behaves as one scrollbar - 
+            # if you use scrollbar on 2nd tab and then go to the 3rd
+            # then focus is not changed to tab3
+            self.ranks_tab.grid(row=0, column=1, rowspan=2, sticky=tk.NSEW)
+            # def tab_changed(event):
+            #     print('tab has changed', event)
+            # self.ranks_tab.bind("<<NotebookTabChanged>>", tab_changed)
             # display intermediate ranks, associated with alpha values
             for rank in result.intermediate_ranks:
                 alpha_value = rank.alpha_value
@@ -78,6 +87,7 @@ class ResultWindow(tk.Frame):
                     image_path,
                     f'{alpha_value.name} rank'
                 )
+                image.pack(fill=tk.BOTH, expand=1)
                 self.__add_image(image)
 
             final_rank = result.final_rank
@@ -88,14 +98,13 @@ class ResultWindow(tk.Frame):
                 final_rank.image_filename,
                 'final rank'
             )
+            final_image.pack(fill=tk.BOTH, expand=1)
             self.__add_image(final_image)
 
+            self.ranks_tab.select(0)
             data_frame = tk.Frame(self)
             data_frame.grid(row=0, column=0, sticky=tk.NSEW)
             tk.Label(data_frame, text='Data - final result').pack(anchor=tk.N, fill=tk.BOTH, expand=1)
-
-            # display ranks
-            self.ranks_tab.grid(row=0, column=1, rowspan=2, sticky=tk.NSEW)
 
             self.__results_data = Table(data_frame)
             self.__results_data.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
@@ -108,16 +117,6 @@ class ResultWindow(tk.Frame):
                 alternatives
             )
             self.explain_alternatives_object.grid(row=1, column=0, sticky=tk.NSEW)
-
-            # model frame
-            # model_frame = tk.Frame(self.top_frame)
-            # model_frame.grid(row=0, column=1, sticky=tk.NSEW)
-            # tk.Label(model_frame, text='Model').pack(anchor=tk.NW, fill=tk.X)
-            # constraints_root = ScrollableFrame(model_frame, 600)
-            # constraints_root.pack(anchor=tk.W)
-            # for constraint in result.model.constraints:
-            #     tk.Label(constraints_root.frame, text=constraint, font=('Arial', 12)).pack(anchor=tk.W, fill=tk.X)
-
 
     def close_window(self):
         if self.__results_data is not None:
