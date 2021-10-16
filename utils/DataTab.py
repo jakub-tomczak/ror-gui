@@ -21,10 +21,10 @@ class DataTab(tk.Frame):
         self.table = Table(self)
         self.table.grid(column=0, row=1, sticky=(tk.NSEW))
 
-    def set_data(self, data: Dataset):
+    def set_data(self, data: Dataset, display_precision: int = 2):
         if self.table is None:
             self.__init_table()
-        self.table.set_data(data)
+        self.table.set_data(data, display_precision)
 
     def clean_data(self):
         if self.table is not None:

@@ -1,7 +1,7 @@
 from typing import Callable, Dict
 from ror.Dataset import RORDataset
 from ror.RORResult import RORResult
-from ror.loader_utils import AvailableParameters
+from ror.loader_utils import RORParameter
 from ror.ror_solver import solve_model, ProcessingCallbackData
 
 from utils.logging import Severity
@@ -9,7 +9,7 @@ from utils.logging import Severity
 
 def solve_problem(
     dataset: RORDataset,
-    parameters: Dict[AvailableParameters, float],
+    parameters: RORParameter,
     logger_callback: Callable[[str, Severity], None],
     calculations_callback: Callable[[ProcessingCallbackData], None]
 ) -> RORResult:

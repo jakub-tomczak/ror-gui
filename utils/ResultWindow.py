@@ -4,13 +4,14 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.ttk import Widget
 from typing import Callable, Dict, List
+from ror.RORParameters import RORParameters
 from ror.RORResult import RORResult
+from ror.loader_utils import RORParameter
 from ror.result_aggregator_utils import from_rank_to_alternatives
 from ror.ror_solver import ProcessingCallbackData
 from utils.ExplainAlternatives import ExplainAlternatives
 
 from utils.ProgressBar import ProgressBar
-from utils.ScrollableFrame import ScrollableFrame
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
 from utils.logging import Severity
@@ -63,7 +64,7 @@ class ResultWindow(tk.Frame):
     def __add_image(self, image: ImageDisplay):
         self.ranks_tab.add(image, text=f'{image.image_name}', compound=tk.TOP, sticky=tk.NSEW, underline=2)
 
-    def set_result(self, result: RORResult, alternatives: List[str]):
+    def set_result(self, result: RORResult, alternatives: List[str], parameters: RORParameters):
         # display all ranks
         if result is not None:
             # display ranks
@@ -108,7 +109,10 @@ class ResultWindow(tk.Frame):
 
             self.__results_data = Table(data_frame)
             self.__results_data.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
-            self.__results_data.set_pandas_data(result.get_result_table())
+            self.__results_data.set_pandas_data(
+                result.get_result_table(),
+                display_precision=parameters.get_parameter(RORParameter.PRECISION)
+            )
 
             # explain result frame
             self.explain_alternatives_object = ExplainAlternatives(

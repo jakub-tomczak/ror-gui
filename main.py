@@ -5,7 +5,7 @@ import os.path as path
 
 from ror.Dataset import Dataset, RORDataset
 import ror.Relation as relation
-from ror.data_loader import AvailableParameters
+from ror.data_loader import RORParameter
 from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.DataTab import DataTab
@@ -28,7 +28,7 @@ class RORWindow:
         self.debug: bool = True
         self.current_filename: str = None
         self.dataset: RORDataset = None
-        self.parameters: Dict[AvailableParameters, float] = None
+        self.parameters: RORParameter = None
         self.result_windows: dict[tk.Frame, ResultWindow] = dict()
         self.alpha_values_frame: AlphaValuesFrame = None
         self.aggregation_method: AggregationWidget = None
@@ -43,7 +43,10 @@ class RORWindow:
             # open new file
             self.dataset = loading_result.dataset
             self.parameters = loading_result.parameters
-            self.table.set_data(self.dataset)
+            self.table.set_data(
+                self.dataset,
+                self.parameters.get_parameter(RORParameter.PRECISION)
+            )
             self.current_filename = filename
             self.log(f'Opened file {filename}')
             self.show_information_tab()
@@ -184,7 +187,7 @@ class RORWindow:
             )
             result = solve_problem(self.dataset.deep_copy(
             ), self.parameters, self.log, self.result_windows[tab].report_progress)
-            self.result_windows[tab].set_result(result, self.dataset.alternatives)
+            self.result_windows[tab].set_result(result, self.dataset.alternatives, self.parameters)
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
             raise e
