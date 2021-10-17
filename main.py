@@ -4,6 +4,7 @@ from typing import Dict, Tuple
 import os.path as path
 
 from ror.Dataset import Dataset, RORDataset
+from ror.RORParameters import RORParameters
 import ror.Relation as relation
 from ror.data_loader import RORParameter
 from utils.AggregationWidget import AggregationWidget
@@ -28,9 +29,9 @@ class RORWindow:
         self.debug: bool = True
         self.current_filename: str = None
         self.dataset: RORDataset = None
-        self.parameters: RORParameter = None
+        self.parameters: RORParameters = None
         self.result_windows: dict[tk.Frame, ResultWindow] = dict()
-        self.alpha_values_frame: AlphaValuesFrame = None
+        self.alpha_values_list: AlphaValuesFrame = None
         self.aggregation_method: AggregationWidget = None
         self.main_tab: ttk.Notebook = None
         self.init_gui()
@@ -90,7 +91,7 @@ class RORWindow:
             self.log(f'Closed file {self.current_filename}')
         self.current_filename = None
         self.parameters = None
-        self.alpha_values_frame = None
+        self.alpha_values_list = None
         self.hide_information_tab()
 
     def cancel_changes(self):
@@ -185,8 +186,13 @@ class RORWindow:
                 tab,
                 self.on_result_close
             )
-            result = solve_problem(self.dataset.deep_copy(
-            ), self.parameters, self.log, self.result_windows[tab].report_progress)
+            result = solve_problem(
+                self.dataset.deep_copy(),
+                self.parameters,
+                self.log,
+                self.result_windows[tab].report_progress,
+                self.aggregation_method.get_aggregation_method()
+            )
             self.result_windows[tab].set_result(result, self.dataset.alternatives, self.parameters)
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
@@ -245,8 +251,10 @@ class RORWindow:
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text=f'Alpha values:').pack(
             anchor=tk.N, fill=tk.X)
-        self.alpha_values_frame = AlphaValuesFrame(information_box, self.log)
-        self.alpha_values_frame.root.pack(anchor=tk.CENTER)
+        self.alpha_values_list = tk.Listbox(information_box)
+        self.alpha_values_list.pack(anchor=tk.N, fill=tk.X)
+        for index, alpha_value in enumerate(self.parameters.get_parameter(RORParameter.ALPHA_VALUES)):
+            self.alpha_values_list.insert(index, f'{index+1}. Alpha value: {alpha_value}')
 
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text=f'Relations').pack(
@@ -308,7 +316,10 @@ class RORWindow:
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text=f'Aggregation method').pack(
             anchor=tk.N, fill=tk.X)
-        self.aggregation_method = AggregationWidget(information_box)
+        self.aggregation_method = AggregationWidget(
+            information_box,
+            self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR)
+        )
 
         # bottom tab buttons
         information_box_bottom.columnconfigure(0, weight=1)

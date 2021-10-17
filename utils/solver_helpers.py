@@ -11,11 +11,12 @@ def solve_problem(
     dataset: RORDataset,
     parameters: RORParameter,
     logger_callback: Callable[[str, Severity], None],
-    calculations_callback: Callable[[ProcessingCallbackData], None]
+    calculations_callback: Callable[[ProcessingCallbackData], None],
+    aggregation_method: str
 ) -> RORResult:
     logger_callback('Starting calculations')
 
-    result = solve_model(dataset, parameters, calculations_callback)
+    result = solve_model(dataset, parameters, aggregation_method, progress_callback=calculations_callback)
 
     logger_callback('Finished calculations')
 
