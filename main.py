@@ -4,12 +4,15 @@ from typing import Dict, Tuple
 import os.path as path
 
 from ror.Dataset import Dataset, RORDataset
+from ror.PreferenceRelations import PreferenceIntensityRelation
 from ror.RORParameters import RORParameters
 import ror.Relation as relation
 from ror.data_loader import RORParameter
 from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.DataTab import DataTab
+from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
+from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
 from utils.ResultWindow import ResultWindow
 from utils.logging import Severity
 from utils.solver_helpers import solve_problem
@@ -267,52 +270,12 @@ class RORWindow:
         tab_control.add(intensity_relations_tab, text='Intensity relations')
         tab_control.pack(anchor=tk.N, fill=tk.BOTH)
 
-        # display preference relations in the tab
-        for index, preference_relation in enumerate(self.dataset.preferenceRelations):
-            preference_type_label = None
-            if preference_relation.relation == relation.PREFERENCE:
-                preference_type_label = 'is preferred to alternative'
-            elif preference_relation.relation == relation.WEAK_PREFERENCE:
-                preference_type_label = 'is weakly preffered over alternative'
-            elif preference_relation.relation == relation.INDIFFERENCE:
-                preference_type_label = 'is indifferent to alternative'
-            if preference_type_label is None:
-                ttk.Label(
-                    preference_relations_tab, text=f'{index+1}. INVALID PREFERENCE: {preference_relation.relation}').pack(anchor=tk.N, fill=tk.X)
-            else:
-                label = '{} {} {}'.format(
-                    preference_relation.alternative_1,
-                    preference_type_label,
-                    preference_relation.alternative_2
-                )
-                ttk.Label(
-                    preference_relations_tab, text=f'{index+1}. {label}', wraplength=250, justify="left").pack(anchor=tk.N, fill=tk.X)
+        preference_frame = PreferenceRelationsFrame(preference_relations_tab, self.dataset, True)
+        preference_frame.pack(anchor=tk.N, fill=tk.X)
 
-        # display intensity relations in the tab
-        for index, intensity_relation in enumerate(self.dataset.intensityRelations):
-            relation_name = None
-            if intensity_relation.relation == relation.PREFERENCE:
-                relation_name = 'preferred'
-            elif intensity_relation.relation == relation.WEAK_PREFERENCE:
-                relation_name = 'weakly preferred'
-            elif preference_relation.relation == relation.INDIFFERENCE:
-                relation_name = 'indifferent'
-
-            if preference_type_label is None:
-                ttk.Label(
-                    intensity_relations_tab, text=f'{index+1}. INVALID PREFERENCE: {preference_relation.relation}').pack(anchor=tk.N, fill=tk.X)
-            else:
-                label = '{} is {} to {} stronger than {} is {} to {}'.format(
-                    intensity_relation.alternative_1,
-                    relation_name,
-                    intensity_relation.alternative_2,
-                    intensity_relation.alternative_3,
-                    relation_name,
-                    intensity_relation.alternative_4
-                )
-                ttk.Label(
-                    intensity_relations_tab, text=f'{index+1}. {label}', wraplength=250, justify="left").pack(anchor=tk.N, fill=tk.X)
-
+        preference_intensity_frame = PreferenceIntensityRelationsFrame(intensity_relations_tab, self.dataset, True)
+        preference_intensity_frame.pack(anchor=tk.N, fill=tk.X)
+        
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text=f'Aggregation method').pack(
             anchor=tk.N, fill=tk.X)

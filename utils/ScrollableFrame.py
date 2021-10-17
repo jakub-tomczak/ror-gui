@@ -11,7 +11,7 @@ class ScrollableFrame(tk.Frame):
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.scrollbar.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.canvas.create_window((4,4), window=self.frame, anchor=tk.NW)
+        self.canvas.create_window((0,0), window=self.frame, anchor=tk.NW)
         # update scrollregion after starting 'mainloop'
         # when all widgets are in canvas
         self.frame.bind("<Configure>", self.update_scrollregion)
