@@ -14,7 +14,7 @@ from utils.ExplainAlternatives import ExplainAlternatives
 from utils.ProgressBar import ProgressBar
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
-from utils.logging import Severity
+from utils.Severity import Severity
 
 
 class ResultWindow(tk.Frame):

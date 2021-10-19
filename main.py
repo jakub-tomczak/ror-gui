@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from typing import Dict, Tuple
+from typing import Callable, Dict, Tuple
 import os.path as path
 
 from ror.Dataset import Dataset, RORDataset
@@ -14,7 +14,7 @@ from utils.DataTab import DataTab
 from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
 from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
 from utils.ResultWindow import ResultWindow
-from utils.logging import Severity
+from utils.Severity import Severity
 from utils.solver_helpers import solve_problem
 from utils.tk.ScrolledText import ScrolledText
 from utils.time import get_log_time
@@ -270,10 +270,10 @@ class RORWindow:
         tab_control.add(intensity_relations_tab, text='Intensity relations')
         tab_control.pack(anchor=tk.N, fill=tk.BOTH)
 
-        preference_frame = PreferenceRelationsFrame(preference_relations_tab, self.dataset, True)
+        preference_frame = PreferenceRelationsFrame(preference_relations_tab, self.dataset, True, self.log)
         preference_frame.pack(anchor=tk.N, fill=tk.X)
 
-        preference_intensity_frame = PreferenceIntensityRelationsFrame(intensity_relations_tab, self.dataset, True)
+        preference_intensity_frame = PreferenceIntensityRelationsFrame(intensity_relations_tab, self.dataset, True, self.log)
         preference_intensity_frame.pack(anchor=tk.N, fill=tk.X)
         
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')

@@ -8,14 +8,16 @@ from utils.ScrollableFrame import ScrollableFrame
 from functools import partial
 
 from utils.tk.AddPreferenceIntensityRelationDialog import AddPreferenceIntensityRelationDialog
+from utils.type_aliases import LoggerFunc
 
 
 class PreferenceIntensityRelationsFrame(tk.Frame):
-    def __init__(self, root: tk.Tk, dataset: RORDataset, editable: bool) -> None:
+    def __init__(self, root: tk.Tk, dataset: RORDataset, editable: bool, logger: LoggerFunc) -> None:
         super().__init__(master=root)
         self.__ror_dataset: RORDataset = dataset
         # if true then user can add preference relations
         self.__editable: bool = editable
+        self.__logger = logger
 
         self.__init_gui()
 
@@ -87,11 +89,15 @@ class PreferenceIntensityRelationsFrame(tk.Frame):
         frame.grid(row=1, column=0, sticky=tk.NSEW)
 
     def __add_relation(self):
-        AddPreferenceIntensityRelationDialog(
-            self,
-            self.__ror_dataset.alternatives,
-            self.__on_added_relation
-        )
+        if len(self.__ror_dataset.alternatives) < 4:
+            # there must be at least 4 alternatives to creates preference intensity
+            self.__logger('There must be at least 4 alternatives to creates preference intensity')
+        else:
+            AddPreferenceIntensityRelationDialog(
+                self,
+                self.__ror_dataset.alternatives,
+                self.__on_added_relation
+            )
 
     def __on_added_relation(self, new_relation: PreferenceIntensityRelation):
         if new_relation is not None:

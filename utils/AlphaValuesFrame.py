@@ -7,7 +7,7 @@ import ror.alpha as ror_alpha
 
 from utils.AlphaValueWidget import AlphaValueWidget
 from utils.ScrollableFrame import ScrollableFrame
-from utils.logging import Severity
+from utils.Severity import Severity
 
 
 class AlphaValuesFrame:

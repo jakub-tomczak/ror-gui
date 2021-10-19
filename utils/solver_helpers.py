@@ -4,7 +4,7 @@ from ror.RORResult import RORResult
 from ror.loader_utils import RORParameter
 from ror.ror_solver import solve_model, ProcessingCallbackData
 
-from utils.logging import Severity
+from utils.Severity import Severity
 
 
 def solve_problem(

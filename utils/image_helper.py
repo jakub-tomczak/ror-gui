@@ -6,7 +6,7 @@ import PIL.Image
 import PIL.ImageTk
 from utils.ScrollableFrame import ScrollableFrame
 
-from utils.logging import Severity
+from utils.Severity import Severity
 
 class ImageDisplay(tk.Frame):
     # for rescaling purposes

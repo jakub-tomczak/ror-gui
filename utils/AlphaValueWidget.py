@@ -3,7 +3,7 @@ import tkinter as tk
 from typing import Any, Callable
 
 from utils.AlphaValue import AlphaValue
-from utils.logging import Severity
+from utils.Severity import Severity
 
 
 class AlphaValueWidget(ttk.Frame):

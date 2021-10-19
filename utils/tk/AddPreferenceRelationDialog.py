@@ -12,7 +12,9 @@ class AddPreferenceRelationDialog(CustomDialog):
                  alternatives: List[str],
                  on_submit_callback: Callable[[None], PreferenceRelation]
                  ) -> None:
-        self.__preference_relations: List[str] = relation.PREFERENCE_NAME_TO_RELATION.keys()
+        self.__preference_relations: List[str] = list(
+            relation.PREFERENCE_NAME_TO_RELATION.keys()
+        )
         self.__alternative_1: StringVar = StringVar()
         self.__alternative_2: StringVar = StringVar()
         self.__chosen_relation: StringVar = StringVar()
@@ -98,8 +100,15 @@ class AddPreferenceRelationDialog(CustomDialog):
             *self.__preference_relations,
         ).pack(anchor=tk.CENTER)
 
-        create_input_for_alternative(frame, alternatives[0])
+        create_input_for_alternative(frame, alternatives[1])
 
         label = tk.Label(
             frame, textvariable=self.__validation_result, foreground='red')
         label.grid(row=3, column=0, columnspan=3, sticky=tk.NSEW)
+
+        assert len(self.__alternatives) >= 2, 'Number of alternatives must not be lower than 2'
+        self.__alternative_1.set(self.__alternatives[0])
+        self.__alternative_2.set(self.__alternatives[1])
+
+        assert len(self.__preference_relations) > 0, 'There must be at least one preference relation'
+        self.__chosen_relation.set(self.__preference_relations[0])
