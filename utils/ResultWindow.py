@@ -1,13 +1,10 @@
 from math import floor
-from os import close
 import tkinter as tk
 from tkinter import ttk
-from tkinter.ttk import Widget
-from typing import Callable, Dict, List
+from typing import Callable, List
 from ror.RORParameters import RORParameters
 from ror.RORResult import RORResult
 from ror.loader_utils import RORParameter
-from ror.result_aggregator_utils import from_rank_to_alternatives
 from ror.ror_solver import ProcessingCallbackData
 from utils.ExplainAlternatives import ExplainAlternatives
 
@@ -117,7 +114,7 @@ class ResultWindow(tk.Frame):
             # explain result frame
             self.explain_alternatives_object = ExplainAlternatives(
                 self,
-                lambda alt_1, alt_2: f"{alt_1} vs {alt_2}: don't know why",
+                result.results_aggregator.explain_result,
                 alternatives
             )
             self.explain_alternatives_object.grid(row=1, column=0, sticky=tk.NSEW)

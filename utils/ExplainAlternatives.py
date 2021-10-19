@@ -28,9 +28,11 @@ class ExplainAlternatives(tk.Frame):
             self.__explanation.set(
                 f'Pick different alternatives to get explanation, Picked only alternative {alternative_1}')
         else:
-            explanation = self.__explain_function(alternative_1, alternative_2)
-            print('setting explanation to', explanation)
-            self.__explanation.set(explanation)
+            try:
+                explanation = self.__explain_function(alternative_1, alternative_2)
+                self.__explanation.set(explanation)
+            except Exception as e:
+                self.__explanation.set('Failed to get explanation')
 
     def __make_gui(self):
         self.columnconfigure(0, weight=4)
@@ -69,7 +71,7 @@ class ExplainAlternatives(tk.Frame):
 
         label = tk.Label(self, text='Explanation:')
         label.grid(row=3, column=0, columnspan=3)
-        self.label = tk.Label(self, textvariable=self.__explanation)
+        self.label = tk.Label(self, textvariable=self.__explanation, wraplength=200)
         self.label.grid(row=4, column=0, columnspan=3)
 
         self.__explanation.set('No alternatives were picked')
