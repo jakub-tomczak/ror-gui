@@ -1,5 +1,5 @@
 from tkinter import ttk
-from typing import List, Union
+from typing import List, Tuple, Union
 from ror.Dataset import Dataset, RORDataset
 from ror.number_utils import format_number
 import tksheet
@@ -9,7 +9,7 @@ import pandas as pd
 
 class Table(tksheet.Sheet):
     def __init__(self, parent: ttk.Frame):
-        super().__init__(parent, width=500)
+        super().__init__(parent)
         self.enable_bindings(
             (
                 "single_select",
@@ -59,3 +59,7 @@ class Table(tksheet.Sheet):
                            for value in data])
             data_str.append(new_row)
         self.set_sheet_data(data_str)
+
+    def set_simple_data(self, data: List[Tuple[str, str]]):
+        self.headers(['parameter name', 'value'])
+        self.set_sheet_data(data)
