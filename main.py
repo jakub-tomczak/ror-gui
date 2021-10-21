@@ -194,7 +194,7 @@ class RORWindow:
                 self.parameters,
                 self.log,
                 self.result_windows[tab].report_progress,
-                self.aggregation_method.get_aggregation_method()
+                self.aggregation_method.get_aggregation_method_name()
             )
             self.result_windows[tab].set_result(result, self.dataset.alternatives, self.parameters)
         except Exception as e:

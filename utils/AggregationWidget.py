@@ -22,13 +22,13 @@ class AggregationWidget:
                 variable=self.__chosen_method,
                 value=name
             )
-            radio_button.pack()
+            radio_button.pack(anchor=tk.NW, expand=1, fill=tk.X)
         # pick currently selected method
         self.__chosen_method.set(method_from_parameters)
         self.frame.pack(anchor=tk.N, fill=tk.BOTH)
             
 
-    def get_aggregation_method(self) -> AbstractResultAggregator:
+    def get_aggregation_method_name(self) -> str:
         selected_method: str = self.__chosen_method.get()
         if selected_method is None or selected_method not in self.__aggregation_methods:
             valid_aggregation_methods = ", ".join(self.__aggregation_methods.keys())
