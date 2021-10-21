@@ -96,7 +96,8 @@ class PreferenceIntensityRelationsFrame(tk.Frame):
             AddPreferenceIntensityRelationDialog(
                 self,
                 self.__ror_dataset.alternatives,
-                self.__on_added_relation
+                self.__on_added_relation,
+                self.__ror_dataset.intensityRelations
             )
 
     def __on_added_relation(self, new_relation: PreferenceIntensityRelation):

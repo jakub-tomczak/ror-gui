@@ -91,7 +91,8 @@ class PreferenceRelationsFrame(tk.Frame):
             AddPreferenceRelationDialog(
                 self,
                 self.__ror_dataset.alternatives,
-                self.__on_added_relation
+                self.__on_added_relation,
+                self.__ror_dataset.preferenceRelations
             )
 
     def __on_added_relation(self, new_relation: PreferenceRelation):

@@ -10,7 +10,8 @@ class AddPreferenceIntensityRelationDialog(CustomDialog):
     def __init__(self,
                  master: tk.Tk,
                  alternatives: List[str],
-                 on_submit_callback: Callable[[None], PreferenceIntensityRelation]
+                 on_submit_callback: Callable[[None], PreferenceIntensityRelation],
+                 intensity_relations: List[PreferenceIntensityRelation]
                  ) -> None:
         self.__preference_relations: List[str] = list(
             relation.PREFERENCE_NAME_TO_RELATION.keys()
@@ -22,6 +23,7 @@ class AddPreferenceIntensityRelationDialog(CustomDialog):
         self.__chosen_relation: StringVar = StringVar()
         self.__validation_result: StringVar = StringVar()
         self.__alternatives: List[str] = alternatives
+        self.__existing_intensity_relations = set(intensity_relations)
         self.__on_submit_callback = on_submit_callback
         super().__init__(
             master,
@@ -29,7 +31,7 @@ class AddPreferenceIntensityRelationDialog(CustomDialog):
             submit_button_text='Add'
         )
 
-    def get_data(self) -> Any:
+    def __create_relation(self) -> PreferenceIntensityRelation:
         return PreferenceIntensityRelation(
             self.__alternative_1.get(),
             self.__alternative_2.get(),
@@ -37,6 +39,9 @@ class AddPreferenceIntensityRelationDialog(CustomDialog):
             self.__alternative_4.get(),
             relation.PREFERENCE_NAME_TO_RELATION[self.__chosen_relation.get()]
         )
+
+    def get_data(self) -> Any:
+        return self.__create_relation()
 
     def _validate(self) -> bool:
         alternatives_to_check = [
@@ -59,6 +64,11 @@ class AddPreferenceIntensityRelationDialog(CustomDialog):
         if self.__chosen_relation.get() == '' or self.__chosen_relation.get() not in self.__preference_relations:
             self.__validation_result.set(
                 'Failed to add preference relation: Invalid relation name')
+            return False
+
+        if self.__create_relation() in self.__existing_intensity_relations:
+            self.__validation_result.set(
+                'Failed to add preference relation: Relation already exists')
             return False
         return True
 

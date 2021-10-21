@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import StringVar
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, List, Set, Tuple
 import ror.Relation as relation
 from ror.PreferenceRelations import PreferenceRelation
 from utils.tk.CustomDialog import CustomDialog
@@ -10,7 +10,8 @@ class AddPreferenceRelationDialog(CustomDialog):
     def __init__(self,
                  master: tk.Tk,
                  alternatives: List[str],
-                 on_submit_callback: Callable[[None], PreferenceRelation]
+                 on_submit_callback: Callable[[None], PreferenceRelation],
+                 preference_relations: List[PreferenceRelation]
                  ) -> None:
         self.__preference_relations: List[str] = list(
             relation.PREFERENCE_NAME_TO_RELATION.keys()
@@ -21,18 +22,22 @@ class AddPreferenceRelationDialog(CustomDialog):
         self.__validation_result: StringVar = StringVar()
         self.__alternatives: List[str] = alternatives
         self.__on_submit_callback = on_submit_callback
+        self.__existing_preference_relations: Set[PreferenceRelation] = set(preference_relations)
         super().__init__(
             master,
             'Add preference relations',
             submit_button_text='Add'
         )
 
-    def get_data(self) -> Any:
+    def __create_relation(self) -> PreferenceRelation:
         return PreferenceRelation(
             self.__alternative_1.get(),
             self.__alternative_2.get(),
             relation.PREFERENCE_NAME_TO_RELATION[self.__chosen_relation.get()]
         )
+
+    def get_data(self) -> Any:
+        return self.__create_relation()
 
     def _validate(self) -> bool:
         alternatives_to_check = [
@@ -52,6 +57,10 @@ class AddPreferenceRelationDialog(CustomDialog):
         if self.__chosen_relation.get() == '' or self.__chosen_relation.get() not in self.__preference_relations:
             self.__validation_result.set(
                 'Failed to add preference relation: Invalid relation name')
+            return False
+        if self.__create_relation() in self.__existing_preference_relations:
+            self.__validation_result.set(
+                'Failed to add preference relation: Relation already exists')
             return False
         return True
 
