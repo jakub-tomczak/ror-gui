@@ -71,7 +71,7 @@ class ExplainAlternatives(tk.Frame):
 
         label = tk.Label(self, text='Explanation:')
         label.grid(row=3, column=0, columnspan=3)
-        self.label = tk.Label(self, textvariable=self.__explanation, wraplength=200)
+        self.label = tk.Label(self, textvariable=self.__explanation, wraplength=600, height=15)
         self.label.grid(row=4, column=0, columnspan=3)
 
         self.__explanation.set('No alternatives were picked')
