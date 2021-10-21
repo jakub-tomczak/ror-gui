@@ -1,10 +1,11 @@
+from math import exp
 import tkinter as tk
-from tkinter import ttk
-from typing import Callable, Dict, Tuple
+from tkinter import StringVar, ttk
+from typing import Dict, Tuple
 import os.path as path
 
 from ror.Dataset import Dataset, RORDataset
-from ror.PreferenceRelations import PreferenceIntensityRelation
+from ror.CalculationsException import CalculationsException
 from ror.RORParameters import RORParameters
 import ror.Relation as relation
 from ror.data_loader import RORParameter
@@ -19,6 +20,7 @@ from utils.solver_helpers import solve_problem
 from utils.tk.ScrolledText import ScrolledText
 from utils.time import get_log_time
 from utils.file_handler import get_file, open_file
+from datetime import datetime
 
 
 class RORWindow:
@@ -35,7 +37,9 @@ class RORWindow:
         self.parameters: RORParameters = None
         self.result_windows: dict[tk.Frame, ResultWindow] = dict()
         self.alpha_values_list: AlphaValuesFrame = None
+        self.epsilion_value: tk.StringVar = StringVar()
         self.aggregation_method: AggregationWidget = None
+        self.information_box: tk.Frame = None
         self.main_tab: ttk.Notebook = None
         self.init_gui()
 
@@ -73,17 +77,23 @@ class RORWindow:
 
     def save_file(self):
         format = 'txt'
+        if not self.validate_model():
+            self.log('Failed to save model, model is not valid', Severity.ERROR)
+            return
         if self.dataset is not None:
             splited = self.current_filename.split(f'.{format}')
             if len(splited) != 2:
                 self.log('Failed to save file')
-            name = splited[0]
+            now = datetime.now()
+            date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
+            name = f'{splited[0]}_{date_time}'
             try:
-                self.dataset.save_to_file(f'{name}.{format}')
+                self.dataset.save_to_file(f'{name}.{format}', self.parameters)
                 self.log(f'Saved dataset to {name}.{format}')
             except Exception as e:
                 self.log(
                     f'Failed to save a file: {e}', severity=Severity.ERROR)
+                raise e
         else:
             self.log('Dataset is empty')
 
@@ -104,6 +114,25 @@ class RORWindow:
                 f'Canceleed changes - reopened file {self.current_filename}')
         else:
             self.log('No file is currently opened')
+
+    def validate_model(self) -> bool:
+        if self.parameters is None:
+            self.log('parameters object is None')
+            return False
+
+        parameters_are_valid = True
+        is_epsilion_valid, new_epsilion = self.try_to_validate_epsilion_value()
+        if is_epsilion_valid:
+            self.parameters.add_parameter(RORParameter.EPS, new_epsilion)
+        parameters_are_valid = is_epsilion_valid
+
+        try:
+            aggregation_method_name = self.aggregation_method.get_aggregation_method_name()
+            self.parameters.add_parameter(RORParameter.RESULTS_AGGREGATOR, aggregation_method_name)
+        except:
+            self.log('Failed to get aggregation method')
+            parameters_are_valid = False
+        return parameters_are_valid
 
     def init_menu(self):
         menu = tk.Menu(self.root)
@@ -171,32 +200,37 @@ class RORWindow:
         self.log_console.clear()
 
     def solve(self):
+        if not self.validate_model():
+            self.log('Failed to solve model, model is not valid', Severity.ERROR)
+            return
+
+        tab = ttk.Frame(self.main_tab)
+        tab.rowconfigure(0, weight=1)
+        tab.columnconfigure(0, weight=1)
+        now = datetime.now()
+        now_str = now.strftime("%H:%M:%S")
+        self.main_tab.add(
+            tab, text=f'Result {now_str}, {self.current_filename.split(path.sep)[-1]}')
+        last_tab_id = len(self.main_tab.tabs())-1
+        # focus on the last tab
+        self.main_tab.select(last_tab_id)
+        self.result_windows[tab] = ResultWindow(
+            self.log,
+            self.root,
+            tab,
+            self.on_result_close
+        )
         try:
-            tab = ttk.Frame(self.main_tab)
-            tab.rowconfigure(0, weight=1)
-            tab.columnconfigure(0, weight=1)
-            from datetime import datetime
-            now = datetime.now()
-            now_str = now.strftime("%H-%M-%S")
-            self.main_tab.add(
-                tab, text=f'Result {now_str}, {self.current_filename.split(path.sep)[-1]}')
-            last_tab_id = len(self.main_tab.tabs())-1
-            # focus on the last tab
-            self.main_tab.select(last_tab_id)
-            self.result_windows[tab] = ResultWindow(
-                self.log,
-                self.root,
-                tab,
-                self.on_result_close
-            )
             result = solve_problem(
                 self.dataset.deep_copy(),
-                self.parameters,
+                self.parameters.deep_copy(),
                 self.log,
                 self.result_windows[tab].report_progress,
                 self.aggregation_method.get_aggregation_method_name()
             )
             self.result_windows[tab].set_result(result, self.dataset.alternatives, self.parameters)
+        except CalculationsException as e:
+            self.log(f'Failed to finish calculations: {e}')
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
             raise e
@@ -224,6 +258,19 @@ class RORWindow:
         information_box_bottom.grid(row=1, column=0, sticky=tk.NSEW)
         return information_box, information_box_bottom
 
+    def try_to_validate_epsilion_value(self) -> Tuple[bool, float]:
+        new_value = self.epsilion_value.get()
+        float_value: float = 0.0
+        try:
+            float_value = float(new_value)
+            if float_value < 0.0:
+                self.log('Epsilion value cannot be lower than 0', Severity.ERROR)
+                return (False, None)
+            return (True, float_value)
+        except:
+            self.log(f'Failed set epsilion value. Failed to parse float value from {new_value}', Severity.ERROR)
+            return (False, None)
+
     def show_information_tab(self):
         if self.dataset is None:
             self.log('No dataset available')
@@ -232,12 +279,21 @@ class RORWindow:
         filename = self.current_filename
         # information frame
         information_box, information_box_bottom = self.create_information_tab()
+        self.information_box = information_box
         ttk.Label(information_box, text='Information about opened file').pack(
             anchor=tk.N, fill=tk.X)
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text='Filename: ').pack(
             anchor=tk.N, fill=tk.X)
         ttk.Label(information_box, text=filename).pack(anchor=tk.N, fill=tk.X)
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        self.epsilion_value.set(self.parameters.get_parameter(RORParameter.EPS))
+        ttk.Label(information_box, text=f'Epsilon value:').pack(anchor=tk.N, fill=tk.X)
+        name_entry = ttk.Entry(information_box, textvariable=self.epsilion_value,width=10)
+        name_entry.pack(anchor=tk.NW)
+        ttk.Separator(information_box, orient='horizontal').pack(fill='x')
+        precision = self.parameters.get_parameter(RORParameter.PRECISION)
+        ttk.Label(information_box, text=f'Display precision: {precision}').pack(anchor=tk.N, fill=tk.X)
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text=f'Number of alternatives: {len(self.dataset.alternatives)}').pack(
             anchor=tk.N, fill=tk.X)
@@ -254,7 +310,12 @@ class RORWindow:
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')
         ttk.Label(information_box, text=f'Alpha values:').pack(
             anchor=tk.N, fill=tk.X)
-        self.alpha_values_list = tk.Listbox(information_box)
+        alpha_values_box = tk.Frame(information_box)
+        alpha_values_box.pack(anchor=tk.NW, fill=tk.X)
+        scrollbar = tk.Scrollbar(alpha_values_box)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.alpha_values_list = tk.Listbox(alpha_values_box, height=5, yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.alpha_values_list.yview)
         self.alpha_values_list.pack(anchor=tk.N, fill=tk.X)
         for index, alpha_value in enumerate(self.parameters.get_parameter(RORParameter.ALPHA_VALUES)):
             self.alpha_values_list.insert(index, f'{index+1}. Alpha value: {alpha_value}')
