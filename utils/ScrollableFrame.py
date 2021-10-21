@@ -1,13 +1,14 @@
 import tkinter as tk
+from tkinter import ttk
 
 
-class ScrollableFrame(tk.Frame):
+class ScrollableFrame(ttk.Frame):
     def __init__(self, root: tk.Tk, canvas_width: float = -1):
-        tk.Frame.__init__(self, root, width=canvas_width)
+        ttk.Frame.__init__(self, root, width=canvas_width)
         self.canvas = tk.Canvas(self, bd=0, highlightthickness=0) #, scrollregion=(0,0,500,800)
         # put frame in canvas
-        self.frame = tk.Frame(self.canvas, background="grey")
-        self.scrollbar = tk.Scrollbar(self, orient='vertical', command=self.__move) # self.__move
+        self.frame = ttk.Frame(self.canvas)
+        self.scrollbar = ttk.Scrollbar(self, orient='vertical', command=self.__move) # self.__move
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.scrollbar.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)

@@ -1,13 +1,14 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import StringVar
 from typing import Callable, List
 
 
-class ExplainAlternatives(tk.Frame):
+class ExplainAlternatives(ttk.Frame):
     def __init__(self, root: tk.Tk, explain_func: Callable, alternatives: List[str]):
-        tk.Frame.__init__(self, master=root)
+        ttk.Frame.__init__(self, master=root)
         self.__explanation = StringVar()
-        self.label: tk.Label = None
+        self.label: ttk.Label = None
         self.__alternatives = alternatives
         # function that takes 2 alternatives and returns string - an explanation
         # why alternatives have specific positions in the rank
@@ -43,35 +44,35 @@ class ExplainAlternatives(tk.Frame):
         self.rowconfigure(2, weight=1)
         self.rowconfigure(3, weight=1)
         self.rowconfigure(4, weight=8)
-        explain_label = tk.Label(self, text='Explain rank position')
+        explain_label = ttk.Label(self, text='Explain rank position')
         explain_label.grid(row=0, column=0)
         self.first_alternative = tk.StringVar()
         self.second_alternative = tk.StringVar()
 
-        first_alternative_drop_down = tk.OptionMenu(
+        first_alternative_drop_down = ttk.OptionMenu(
             self,
             self.first_alternative,
             *self.__alternatives,
         )
         first_alternative_drop_down.grid(column=0, row=1, sticky=tk.E)
 
-        second_alternative_drop_down = tk.OptionMenu(
+        second_alternative_drop_down = ttk.OptionMenu(
             self,
             self.second_alternative,
             *self.__alternatives
         )
         second_alternative_drop_down.grid(column=2, row=1, sticky=tk.W)
 
-        explain_label_vs = tk.Label(self, text="vs.")
+        explain_label_vs = ttk.Label(self, text="vs.")
         explain_label_vs.grid(column=1, row=1, sticky=tk.N)
 
         self.pack(anchor=tk.N, fill=tk.X, expand=1)
-        button = tk.Button(master=self, text='Explain position in rank', command=lambda: self.__explain_alternatives())
+        button = ttk.Button(master=self, text='Explain position in rank', command=lambda: self.__explain_alternatives())
         button.grid(row=2, column=0, columnspan=3)
 
-        label = tk.Label(self, text='Explanation:')
+        label = ttk.Label(self, text='Explanation:')
         label.grid(row=3, column=0, columnspan=3)
-        self.label = tk.Label(self, textvariable=self.__explanation, wraplength=600, height=15)
+        self.label = ttk.Label(self, textvariable=self.__explanation)
         self.label.grid(row=4, column=0, columnspan=3)
 
         self.__explanation.set('No alternatives were picked')

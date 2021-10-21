@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import StringVar
 from typing import Any, Callable, List, Tuple
 import ror.Relation as relation
@@ -80,15 +81,17 @@ class AddPreferenceIntensityRelationDialog(CustomDialog):
         self.__on_submit_callback(data)
 
     def create_body(self, frame: tk.Frame):
-        frame.columnconfigure(0, weight=3)
-        frame.columnconfigure(1, weight=3)
-        frame.columnconfigure(2, weight=2)
-        frame.columnconfigure(3, weight=3)
-        frame.columnconfigure(4, weight=3)
-        frame.rowconfigure(0, weight=1)
-        frame.rowconfigure(1, weight=1)
-        frame.rowconfigure(2, weight=1)
-        header = tk.Label(frame, text='Add new preference relation')
+        body = ttk.Frame(frame)
+        body.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+        body.columnconfigure(0, weight=3)
+        body.columnconfigure(1, weight=3)
+        body.columnconfigure(2, weight=2)
+        body.columnconfigure(3, weight=3)
+        body.columnconfigure(4, weight=3)
+        body.rowconfigure(0, weight=1)
+        body.rowconfigure(1, weight=1)
+        body.rowconfigure(2, weight=1)
+        header = ttk.Label(body, text='Add new preference relation')
         header.grid(row=0, column=0)
 
         alternatives = [
@@ -98,35 +101,35 @@ class AddPreferenceIntensityRelationDialog(CustomDialog):
             (self.__alternative_3, 'third', 3, tk.W),
             (self.__alternative_4, 'fourth', 4, tk.W)
         ]
-        def create_input_for_alternative(root: tk.Frame, alternative_data: Tuple[StringVar, str, int, str]):
+        def create_input_for_alternative(root: ttk.Frame, alternative_data: Tuple[StringVar, str, int, str]):
             alternative, name, column, sticky = alternative_data
-            frame = tk.Frame(root)
+            frame = ttk.Frame(root)
             frame.grid(column=column, row=1, sticky=sticky)
-            tk.Label(frame, text=f'{name} alternative').pack(
+            ttk.Label(frame, text=f'{name} alternative').pack(
                 anchor=tk.W)
-            tk.OptionMenu(
+            ttk.OptionMenu(
                 frame,
                 alternative,
                 *self.__alternatives
             ).pack(anchor=tk.CENTER)
         
-        create_input_for_alternative(frame, alternatives[0])
-        create_input_for_alternative(frame, alternatives[1])
+        create_input_for_alternative(body, alternatives[0])
+        create_input_for_alternative(body, alternatives[1])
 
-        relations_grid = tk.Frame(frame)
+        relations_grid = ttk.Frame(body)
         relations_grid.grid(column=2, row=1, sticky=tk.N)
-        tk.Label(relations_grid, text='relation').pack(anchor=tk.CENTER)
-        tk.OptionMenu(
+        ttk.Label(relations_grid, text='relation').pack(anchor=tk.CENTER)
+        ttk.OptionMenu(
             relations_grid,
             self.__chosen_relation,
             *self.__preference_relations,
         ).pack(anchor=tk.CENTER)
 
-        create_input_for_alternative(frame, alternatives[2])
-        create_input_for_alternative(frame, alternatives[3])
+        create_input_for_alternative(body, alternatives[2])
+        create_input_for_alternative(body, alternatives[3])
 
-        label = tk.Label(
-            frame, textvariable=self.__validation_result, foreground='red')
+        label = ttk.Label(
+            body, textvariable=self.__validation_result, foreground='red')
         label.grid(row=3, column=0, columnspan=3, sticky=tk.NSEW)
 
         assert len(self.__alternatives) >= 4, 'Number of alternatives must not be lower than 4'

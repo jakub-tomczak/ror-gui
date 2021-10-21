@@ -1,6 +1,7 @@
 from os import remove
 from tkinter import ttk
 import tkinter as tk
+from tkinter import ttk
 from typing import Callable, List
 from utils.AlphaValue import AlphaValue
 import ror.alpha as ror_alpha
@@ -12,7 +13,7 @@ from utils.Severity import Severity
 
 class AlphaValuesFrame:
     def __init__(self, root: tk.Tk, logger: Callable[[str, Severity], None]):
-        self.root = tk.Frame(root)
+        self.root = ttk.Frame(root)
 
         self.root.rowconfigure(0, weight=9)
         self.root.rowconfigure(1, weight=1)

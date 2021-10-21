@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import tkinter as tk
+from tkinter import ttk
 from typing import Any
 
 from tkinter import StringVar, simpledialog
@@ -58,9 +59,9 @@ class CustomDialog(tk.simpledialog.Dialog):
         pass
 
     def buttonbox(self):
-        self.ok_button = tk.Button(self, textvariable=self._on_submit_text, command=self.ok_pressed)
+        self.ok_button = ttk.Button(self, textvariable=self._on_submit_text, command=self.ok_pressed)
         self.ok_button.pack(side="left")
-        cancel_button = tk.Button(self, textvariable=self._on_cancel_text, command=self.cancel_pressed)
+        cancel_button = ttk.Button(self, textvariable=self._on_cancel_text, command=self.cancel_pressed)
         cancel_button.pack(side="right")
         self.bind("<Return>", lambda event: self.ok_pressed())
         self.bind("<Escape>", lambda event: self.cancel_pressed())

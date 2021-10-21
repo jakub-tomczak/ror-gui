@@ -21,6 +21,7 @@ from utils.tk.ScrolledText import ScrolledText
 from utils.time import get_log_time
 from utils.file_handler import get_file, open_file
 from datetime import datetime
+from ttkthemes import ThemedStyle
 
 
 class RORWindow:
@@ -235,7 +236,7 @@ class RORWindow:
             self.log(f'Failed to solve problem: {e}')
             raise e
 
-    def on_result_close(self, tab_frame: tk.Frame):
+    def on_result_close(self, tab_frame: ttk.Frame):
         self.result_windows[tab_frame].master.destroy()
         del self.result_windows[tab_frame]
     '''
@@ -402,6 +403,8 @@ class RORWindow:
         self.log_console.see('end')
 
     def run(self):
+        style = ThemedStyle(self.root)
+        style.set_theme('radiance') #clearlooks, equilux, arc
         self.root.mainloop()
 
 

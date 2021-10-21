@@ -15,7 +15,7 @@ class ProgressBar(tk.Frame):
         )
         self.__progress_bar.grid(row=0, column=0)
         self.__status_text = tk.StringVar()
-        self.__progress_status = tk.Label(self, textvariable=self.__status_text)
+        self.__progress_status = ttk.Label(self, textvariable=self.__status_text)
         self.__progress_status.grid(column=0, row=1)
 
     def report_progress(self, progress: int, status: str):

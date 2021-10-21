@@ -3,7 +3,6 @@ from typing import List, Tuple, Union
 from ror.Dataset import Dataset, RORDataset
 from ror.number_utils import format_number
 import tksheet
-import numpy as np
 import pandas as pd
 
 

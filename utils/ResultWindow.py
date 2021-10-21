@@ -49,7 +49,7 @@ class ResultWindow(tk.Frame):
         self.columnconfigure(1, weight=2)
         self.__progress_bar = ProgressBar(self)
         self.__progress_bar.grid(row=0, column=0, columnspan=2, rowspan=3, sticky=tk.N, pady=50)
-        tk.Button(self, text='Close solution', command=self.close_window)\
+        ttk.Button(self, text='Close solution', command=self.close_window)\
             .grid(column=0, columnspan=2, row=2)
         self.ranks_tab = ttk.Notebook(self)
         self.grid(row=0, column=0, sticky=tk.NSEW)
@@ -108,49 +108,34 @@ class ResultWindow(tk.Frame):
             self.__add_image(final_image)
 
             self.ranks_tab.select(0)
-            details_frame = tk.Frame(self)
+            details_frame = ttk.Frame(self)
             details_frame.grid(row=0, column=0, sticky=tk.NSEW)
 
             # overview notebook
             self.__overview = ttk.Notebook(details_frame)
             self.__overview.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
 
-            data_tab = tk.Frame(self.__overview)
+            data_tab = ttk.Frame(self.__overview)
             data_tab.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
             self.__overview.add(data_tab, text='Data')
 
             self.__results_data = Table(data_tab)
-            tk.Label(data_tab, text='Data - final result')\
-                .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+            ttk.Label(data_tab, text='Data - final result')\
+                .pack(anchor=tk.NW)
             self.__results_data.set_pandas_data(
                 result.get_result_table(),
                 display_precision=parameters.get_parameter(RORParameter.PRECISION)
             )
             self.__results_data.pack(anchor=tk.N, fill=tk.BOTH, expand=1)
 
-            self.__solution_properties_tab = tk.Frame(self.__overview)
+            self.__solution_properties_tab = ttk.Frame(self.__overview)
             self.__overview.add(self.__solution_properties_tab, text='Model properties')
-            self.__solution_properties_tab.rowconfigure(0, weight=1)
-            # method
-            self.__solution_properties_tab.rowconfigure(1, weight=1)    
+            
             # parameters
-            self.__solution_properties_tab.rowconfigure(2, weight=2)
-            # preferences
-            self.__solution_properties_tab.rowconfigure(3, weight=2)
-
-            # create 6 columns, with equal width
-            self.__solution_properties_tab.columnconfigure(0, weight=1)
-            self.__solution_properties_tab.columnconfigure(1, weight=1)
-            self.__solution_properties_tab.columnconfigure(2, weight=1)
-            self.__solution_properties_tab.columnconfigure(3, weight=1)
-            self.__solution_properties_tab.columnconfigure(4, weight=1)
-            self.__solution_properties_tab.columnconfigure(5, weight=1)
-
-            # add parameters
             parameters_frame = tk.Frame(self.__solution_properties_tab)
-            parameters_frame.grid(row=2, column=0, columnspan=6, sticky=tk.NSEW)
+            parameters_frame.pack(anchor=tk.NW, expand=1, fill=tk.X)
 
-            tk.Label(parameters_frame, text='Parameters', font=('Arial', 17)).pack(anchor=tk.NW, fill=tk.Y, expand=1)
+            ttk.Label(parameters_frame, text='Parameters', font=('Arial', 17)).pack(anchor=tk.NW)
             method_parameters: List[Tuple[str, str]] = []
             for parameter in RORParameter:
                 if type(result.results_aggregator) is not WeightedResultAggregator and parameter == RORParameter.ALPHA_WEIGHTS:
@@ -159,7 +144,7 @@ class ResultWindow(tk.Frame):
                 method_parameters.append((parameter.value, result.parameters.get_parameter(parameter)))
             parameters_table = Table(parameters_frame)
             parameters_table.set_simple_data(method_parameters)
-            parameters_table.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+            parameters_table.pack(anchor=tk.NW)
 
             # add preference relations
             preferences_frame = tk.Frame(self.__solution_properties_tab)
@@ -167,8 +152,8 @@ class ResultWindow(tk.Frame):
             preferences_frame.rowconfigure(0, weight=9)
             preferences_frame.columnconfigure(0, weight=1)
             preferences_frame.columnconfigure(1, weight=1)
-            preferences_frame.grid(row=3, column=0, columnspan=6, sticky=tk.NSEW)
-            tk.Label(preferences_frame, text='Preference relations', font=('Arial', 17)).grid(row=0, sticky=tk.NW)
+            preferences_frame.pack(anchor=tk.NW)
+            ttk.Label(preferences_frame, text='Preference relations', font=('Arial', 17)).grid(row=0, sticky=tk.NW)
             preferences = PreferenceRelationsFrame(preferences_frame, result.model.dataset, False, self.__logger)
             preferences.grid(row=1, column=0, sticky=tk.NSEW)
             intensity_preferences = PreferenceIntensityRelationsFrame(preferences_frame, result.model.dataset, False, self.__logger)

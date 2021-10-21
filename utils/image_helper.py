@@ -1,5 +1,6 @@
 from math import floor
 import tkinter as tk
+from tkinter import ttk
 import logging
 from typing import Callable
 import PIL.Image
@@ -8,14 +9,14 @@ from utils.ScrollableFrame import ScrollableFrame
 
 from utils.Severity import Severity
 
-class ImageDisplay(tk.Frame):
+class ImageDisplay(ttk.Frame):
     # for rescaling purposes
     IMAGE_WIDTH=250
     IMAGE_HEIGHT=600
     CLICK_TO_COPY_LABEL = '(click to copy)'
 
     def __init__(self, logger: Callable[[str, Severity], None], window_object: tk.Tk, root: tk.Tk, image_path: str, image_name: str):
-        tk.Frame.__init__(self, master=root)
+        ttk.Frame.__init__(self, master=root)
         self.__logger = logger
         self.__window_object: tk.Tk = window_object
         self.__image_path: str = image_path
@@ -57,8 +58,8 @@ class ImageDisplay(tk.Frame):
         self.__image = PIL.ImageTk.PhotoImage(new_image)
         
         # add image name and path above the image
-        tk.Label(self, text=f'Name: {self.__image_name}', font=("Arial", 14)).pack(anchor=tk.NW, fill=tk.X)
-        image_path_label = tk.Label(self, text=f'Path: {self.__image_path} (click to copy)', font=("Arial", 10))
+        ttk.Label(self, text=f'Name: {self.__image_name}', font=("Arial", 14)).pack(anchor=tk.NW, fill=tk.X)
+        image_path_label = ttk.Label(self, text=f'Path: {self.__image_path} (click to copy)', font=("Arial", 10))
         image_path_label.pack(anchor=tk.NW, fill=tk.X)
         image_path_label.bind("<Button-1>", self.__copy_text_to_clipboard)
         # pack scrollbar after labels to have labels above canvas

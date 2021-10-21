@@ -11,7 +11,7 @@ from utils.tk.AddPreferenceIntensityRelationDialog import AddPreferenceIntensity
 from utils.type_aliases import LoggerFunc
 
 
-class PreferenceIntensityRelationsFrame(tk.Frame):
+class PreferenceIntensityRelationsFrame(ttk.Frame):
     def __init__(self, root: tk.Tk, dataset: RORDataset, editable: bool, logger: LoggerFunc) -> None:
         super().__init__(master=root)
         self.__ror_dataset: RORDataset = dataset
@@ -28,13 +28,13 @@ class PreferenceIntensityRelationsFrame(tk.Frame):
             # add one button at the bottom for adding relations
             self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-        label = tk.Label(self, text='Preference intensity relations')
+        label = ttk.Label(self, text='Preference intensity relations')
         label.grid(row=0, column=0, sticky=tk.NSEW)
 
         self.__update_relations()
 
         if self.__editable:
-            button = tk.Button(
+            button = ttk.Button(
                 self,
                 text='Add preference intensity relation',
                 command=lambda: self.__add_relation()
@@ -66,21 +66,19 @@ class PreferenceIntensityRelationsFrame(tk.Frame):
                     relation_name,
                     intensity_relation.alternative_4
                 )
-                inside_frame = tk.Frame(frame.frame)
+                inside_frame = ttk.Frame(frame.frame)
                 inside_frame.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
                 inside_frame.rowconfigure(0, weight=1)
                 inside_frame.columnconfigure(0, weight=9)
                 inside_frame.columnconfigure(1, weight=1)
-                label = tk.Label(
+                label = ttk.Label(
                     inside_frame,
                     text=f'{index+1}. {label}',
                     wraplength=200,
-                    justify="left",
-                    bg="white",
-                    foreground="black"
+                    justify="left", padding=2
                 ).grid(column=0, row=0, sticky=tk.W)
                 if self.__editable:
-                    tk.Button(
+                    ttk.Button(
                         inside_frame,
                         text='Remove',
                         command=partial(self.remove_relation,

@@ -1,16 +1,17 @@
 import tkinter as tk
+from tkinter import ttk
 from ror.Dataset import Dataset
 from utils.Table import Table
 
 
-class DataTab(tk.Frame):
+class DataTab(ttk.Frame):
     def __init__(self, root: tk.Tk):
-        tk.Frame.__init__(self, root)
+        ttk.Frame.__init__(self, root)
         self.table: Table = None
         self.init_gui()
 
     def init_gui(self):
-        tk.Label(self, text="Dataset").pack(anchor=tk.NW)
+        ttk.Label(self, text="Dataset").pack(anchor=tk.NW)
         # data frame
         self.__init_table()
 
