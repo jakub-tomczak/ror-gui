@@ -123,7 +123,7 @@ class AddPreferenceIntensityRelationDialog(CustomDialog):
         self.__alternative_1.set(self.__alternatives[0])
         self.__alternative_2.set(self.__alternatives[1])
         self.__alternative_3.set(self.__alternatives[2])
-        self.__alternative_4.set(self.__alternatives[4])
+        self.__alternative_4.set(self.__alternatives[3])
 
         assert len(self.__preference_relations) > 0, 'There must be at least one preference relation'
         self.__chosen_relation.set(self.__preference_relations[0])
