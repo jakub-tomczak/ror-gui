@@ -10,16 +10,13 @@ class DataTab(tk.Frame):
         self.init_gui()
 
     def init_gui(self):
+        tk.Label(self, text="Dataset").pack(anchor=tk.NW)
         # data frame
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=9)
-        self.grid(column=0, row=0, sticky=(tk.NSEW))
         self.__init_table()
 
     def __init_table(self):
         self.table = Table(self)
-        self.table.grid(column=0, row=1, sticky=(tk.NSEW))
+        self.table.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
 
     def set_data(self, data: Dataset, display_precision: int = 2):
         if self.table is None:
