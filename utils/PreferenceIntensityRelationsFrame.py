@@ -6,6 +6,7 @@ from ror.PreferenceRelations import PreferenceIntensityRelation
 from utils.ScrollableFrame import ScrollableFrame
 
 from functools import partial
+from utils.Severity import Severity
 
 from utils.tk.AddPreferenceIntensityRelationDialog import AddPreferenceIntensityRelationDialog
 from utils.type_aliases import LoggerFunc
@@ -89,7 +90,7 @@ class PreferenceIntensityRelationsFrame(ttk.Frame):
     def __add_relation(self):
         if len(self.__ror_dataset.alternatives) < 4:
             # there must be at least 4 alternatives to creates preference intensity
-            self.__logger('There must be at least 4 alternatives to creates preference intensity')
+            self.__logger('There must be at least 4 alternatives to creates preference intensity', Severity.ERROR)
         else:
             AddPreferenceIntensityRelationDialog(
                 self,
@@ -101,6 +102,7 @@ class PreferenceIntensityRelationsFrame(ttk.Frame):
     def __on_added_relation(self, new_relation: PreferenceIntensityRelation):
         if new_relation is not None:
             self.__ror_dataset.add_intensity_relation(new_relation)
+            self.__logger(f'Added preference intensity relation {new_relation}', Severity.SUCCESS)
             self.__update_relations()
 
     def remove_relation(self, relation: PreferenceIntensityRelation):
