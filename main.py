@@ -216,7 +216,7 @@ class RORWindow:
                 self.result_windows[tab].report_progress,
                 parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR)
             )
-            self.result_windows[tab].set_result(result, self.dataset.alternatives, self.parameters)
+            self.result_windows[tab].set_result(result, dataset.alternatives, parameters)
         except CalculationsException as e:
             self.log(f'Failed to finish calculations: {e}')
         except Exception as e:
