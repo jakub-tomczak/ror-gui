@@ -87,7 +87,7 @@ class RORWindow:
             self.log('Failed to save model, model is not valid', Severity.ERROR)
             return
         
-        save_model(self.dataset, self.parameters, self.current_filename, self.log)
+        save_model(self.root, self.dataset, self.parameters, self.current_filename, self.log)
 
     def close_file(self):
         self.table.clean_data()

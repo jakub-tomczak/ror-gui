@@ -202,6 +202,7 @@ class ResultWindow(tk.Frame):
             self.__logger('Data is none, failed to save model', Severity.ERROR)
             return
         save_model(
+            self,
             self.__ror_result.model.dataset,
             self.__ror_parameters,
             f'{self.__ror_result.results_aggregator.name}_result',

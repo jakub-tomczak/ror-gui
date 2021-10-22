@@ -2,25 +2,30 @@ from ror.Dataset import RORDataset
 from ror.RORParameters import RORParameters
 from utils.Severity import Severity
 from utils.type_aliases import LoggerFunc
-from datetime import datetime
+from tkinter.filedialog import asksaveasfilename
+from tkinter import ttk
+from os import path
 
 
-def save_model(dataset: RORDataset, parameters: RORParameters, filename: str, logger: LoggerFunc):
+def save_model(root: ttk.Frame, dataset: RORDataset, parameters: RORParameters, initial_filename: str, logger: LoggerFunc):
     format = 'txt'
+    file_basename = path.basename(initial_filename)
     if dataset is not None:
-        # remove extensions (if exist)
-        _filename = filename
-        splited = filename.split(f'.{format}')
-        if splited[-1] == '':
-            # there was .txt at the end
-            # recreate filename without .txt extension
-            _filename = ''.join(splited[:-1])
-        now = datetime.now()
-        date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
-        name = f'{_filename}_{date_time}'
+        # ask for filename to save
+        _filename = asksaveasfilename(
+            parent=root,
+            defaultextension=f".{format}",
+            initialfile=file_basename,
+            title="Save"
+        )
+        if _filename is None or _filename == '':
+            logger('Cancelled file saving')
+            return
+        if not _filename.endswith(f'.{format}'):
+            _filename += f'.{format}'
         try:
-            dataset.save_to_file(f'{name}.{format}', parameters)
-            logger(f'Saved dataset to {name}.{format}')
+            dataset.save_to_file(_filename, parameters)
+            logger(f'Saved dataset to {_filename}')
         except Exception as e:
             logger(f'Failed to save a file: {e}', severity=Severity.ERROR)
             raise e
