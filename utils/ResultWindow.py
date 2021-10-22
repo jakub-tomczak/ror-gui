@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Callable, List, Tuple
 from pandas.core import accessor
+from ror.Dataset import RORDataset
+from ror.PreferenceRelations import PreferenceIntensityRelation, PreferenceRelation
 from ror.RORParameters import RORParameters
 from ror.RORResult import RORResult
 from ror.Relation import Relation
@@ -18,7 +20,7 @@ from utils.ScrollableFrame import ScrollableFrame
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
 from utils.Severity import Severity
-from utils.tk.io_helper import save_model
+from utils.tk.io_helper import save_model, save_model_latex
 from utils.type_aliases import LoggerFunc
 
 
@@ -27,6 +29,8 @@ class ResultWindow(tk.Frame):
             self,
             logger: Callable[[str, Severity], None],
             window_object: tk.Tk,
+            dataset: RORDataset,
+            parameters: RORParameters,
             root: tk.Tk,
             close_callback: Callable[[tk.Frame], None] = None):
         tk.Frame.__init__(self, master=root)
@@ -41,7 +45,8 @@ class ResultWindow(tk.Frame):
         self.final_image_frame: tk.Frame = None
         self.__overview: ttk.Notebook = None
         self.__ror_result: RORResult = None
-        self.__ror_parameters: RORParameters = None
+        self.__ror_parameters: RORParameters = parameters
+        self.__ror_dataset: RORDataset = dataset
         self.explain_alternatives_object: ExplainAlternatives = None
         self.init_gui()
 
@@ -51,7 +56,7 @@ class ResultWindow(tk.Frame):
         self.columnconfigure(0, weight=8)
         self.columnconfigure(1, weight=2)
         self.__progress_bar = ProgressBar(self)
-        self.__progress_bar.grid(row=0, column=0, columnspan=2, rowspan=3, sticky=tk.N, pady=50)
+        self.__progress_bar.grid(row=0, column=0, columnspan=2, rowspan=2, sticky=tk.N, pady=50)
         ttk.Button(self, text='Close solution', command=self.close_window)\
             .grid(column=0, columnspan=2, row=2)
         self.ranks_tab = ttk.Notebook(self)
@@ -66,11 +71,73 @@ class ResultWindow(tk.Frame):
             self.__progress_bar = None
 
     def report_progress(self, data: ProcessingCallbackData):
-        self.__set_progress(floor(data.progress*100), data.status)
+        if data.progress < 0:
+            root = ttk.Frame(self)
+            # processing error
+            ttk.Label(root, text='Failed to calculate solution from provided data', font=('Arial', 17), foreground='red3').\
+                pack(anchor=tk.NW)
+            cause = data.status if data.status is not None and data.status else 'unknown'
+            ttk.Label(root, text=f'cause: {cause}', font=('Arial', 14)).\
+                pack(anchor=tk.NW)
+            if self.__ror_parameters is None:
+                ttk.Label(root, text=f'Parameters were not provided', font=('Arial', 14)).\
+                    pack(anchor=tk.NW)
+            else:
+                parameters = self.__display_model_parameters(
+                    root,
+                    self.__ror_parameters
+                )
+                parameters.pack(anchor=tk.NW, fill=tk.X, expand=1)
+            parameters.pack(anchor=tk.NW)
+            if self.__ror_dataset is None:
+                ttk.Label(root, text=f'Dataset was not provided', font=('Arial', 14)).\
+                    pack(anchor=tk.NW)
+            else:
+                preferences = self.__display_model_preferences(
+                    root,
+                    self.__ror_dataset
+                )
+                preferences.pack(anchor=tk.NW, fill=tk.X, expand=1)
+            root.grid(row=0, column=0, columnspan=2, rowspan=2, sticky=tk.N)
+        else:
+            self.__set_progress(floor(data.progress*100), data.status)
         self.update()
 
     def __add_image(self, image: ImageDisplay):
         self.ranks_tab.add(image, text=f'{image.image_name}', compound=tk.TOP, sticky=tk.NSEW, underline=2)
+
+    def __display_model_parameters(self, root: ttk.Frame, parameters: RORParameters) -> tk.Frame:
+        frame = ttk.Frame(root)
+        ttk.Label(frame, text='Parameters', font=('Arial', 17)).pack(anchor=tk.NW)
+        method_parameters: List[Tuple[str, str]] = []
+        for parameter in RORParameter:
+            if parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) is not 'WeightedResultAggregator' \
+                and parameter == RORParameter.ALPHA_WEIGHTS:
+                # don't add weights parameter if not using WeightedResultAggregator
+                continue
+            method_parameters.append((parameter.value, parameters.get_parameter(parameter)))
+        parameters_table = Table(frame)
+        parameters_table.set_simple_data(method_parameters)
+        parameters_table.pack(anchor=tk.NW, fill=tk.X, expand=0)
+        return frame
+
+    def __display_model_preferences(
+        self,
+        root: tk.Frame,
+        dataset: RORDataset
+    ) -> tk.Frame:
+        preferences_frame = ttk.Frame(root)
+        ttk.Label(preferences_frame, text='Preference relations', font=('Arial', 17)).pack(anchor=tk.NW)
+        preferences_windows = ttk.Frame(preferences_frame)
+        preferences_windows.rowconfigure(0, weight=1)
+        preferences_windows.columnconfigure(0, weight=1)
+        preferences_windows.columnconfigure(1, weight=1)
+        preferences_windows.pack(anchor=tk.NW, fill=tk.X, expand=1)
+        preferences = PreferenceRelationsFrame(preferences_windows, dataset, False, self.__logger)
+        preferences.grid(row=0, column=0, sticky=tk.NSEW)
+        intensity_preferences = PreferenceIntensityRelationsFrame(preferences_windows, dataset, False, self.__logger)
+        intensity_preferences.grid(row=0, column=1, sticky=tk.NSEW)
+        return preferences_frame
 
     def set_result(self, result: RORResult, alternatives: List[str], parameters: RORParameters):
         # display all ranks
@@ -141,34 +208,12 @@ class ResultWindow(tk.Frame):
             self.__solution_properties_tab.rowconfigure(2, weight=1)
             
             # parameters
-            parameters_frame = tk.Frame(self.__solution_properties_tab)
+            parameters_frame: ttk.Frame = self.__display_model_parameters(self.__solution_properties_tab, result.parameters)
             parameters_frame.grid(row=0, sticky=tk.NSEW)
-            # parameters_frame.pack(anchor=tk.NW, expand=1, fill=tk.X)
-
-            ttk.Label(parameters_frame, text='Parameters', font=('Arial', 17)).pack(anchor=tk.NW)
-            method_parameters: List[Tuple[str, str]] = []
-            for parameter in RORParameter:
-                if type(result.results_aggregator) is not WeightedResultAggregator and parameter == RORParameter.ALPHA_WEIGHTS:
-                    # don't add weights parameter if not using WeightedResultAggregator
-                    continue
-                method_parameters.append((parameter.value, result.parameters.get_parameter(parameter)))
-            parameters_table = Table(parameters_frame)
-            parameters_table.set_simple_data(method_parameters)
-            parameters_table.pack(anchor=tk.NW, fill=tk.X, expand=0)
 
             # add preference relations
-            preferences_frame = tk.Frame(self.__solution_properties_tab)
+            preferences_frame: ttk.Frame = self.__display_model_preferences(self.__solution_properties_tab, result.model.dataset)
             preferences_frame.grid(row=1, sticky=tk.NSEW)
-            ttk.Label(preferences_frame, text='Preference relations', font=('Arial', 17)).pack(anchor=tk.NW) #.grid(row=0, sticky=tk.NW)
-            preferences_windows = ttk.Frame(preferences_frame)
-            preferences_windows.rowconfigure(0, weight=1)
-            preferences_windows.columnconfigure(0, weight=1)
-            preferences_windows.columnconfigure(1, weight=1)
-            preferences_windows.pack(anchor=tk.NW, fill=tk.X, expand=1)
-            preferences = PreferenceRelationsFrame(preferences_windows, result.model.dataset, False, self.__logger)
-            preferences.grid(row=0, column=0, sticky=tk.NSEW)
-            intensity_preferences = PreferenceIntensityRelationsFrame(preferences_windows, result.model.dataset, False, self.__logger)
-            intensity_preferences.grid(row=0, column=1, sticky=tk.NSEW)
 
             buttons = ttk.Frame(self.__solution_properties_tab)
             # buttons.pack(anchor=tk.NW)
@@ -184,7 +229,7 @@ class ResultWindow(tk.Frame):
             ttk.Button(
                 buttons,
                 text='Save model to latex',
-                command=lambda: self.__save_model()
+                command=lambda: self.__save_model_to_tex()
             ).grid(row=0, column=2, sticky=tk.NSEW)
 
             # explain result frame
@@ -206,7 +251,20 @@ class ResultWindow(tk.Frame):
             self.__ror_result.model.dataset,
             self.__ror_parameters,
             f'{self.__ror_result.results_aggregator.name}_result',
-            self.__logger)
+            self.__logger
+        )
+    
+    def __save_model_to_tex(self):
+        if self.__ror_result is None or self.__ror_parameters is None:
+            self.__logger('Data is none, failed to save model', Severity.ERROR)
+            return
+        save_model_latex(
+            self,
+            self.__ror_result.model,
+            self.__ror_parameters,
+            f'{self.__ror_result.results_aggregator.name}_result',
+            self.__logger
+        )
 
     def close_window(self):
         if self.__results_data is not None:

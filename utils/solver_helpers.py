@@ -16,8 +16,13 @@ def solve_problem(
 ) -> RORResult:
     logger_callback('Starting calculations')
 
-    result = solve_model(dataset, parameters, aggregation_method, progress_callback=calculations_callback)
-
-    logger_callback('Finished calculations')
+    try:
+        result = None
+        raise Exception('some exceptiono')
+        result = solve_model(dataset, parameters, aggregation_method, progress_callback=calculations_callback)
+    except Exception as e:
+        calculations_callback(ProcessingCallbackData(-1, e))
+        logger_callback(f'Failed during calculations: {e}', Severity.ERROR)
+    logger_callback('Finished calculations', Severity.SUCCESS)
 
     return result
