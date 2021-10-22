@@ -5,3 +5,4 @@ class Severity(Enum):
     INFO = "INFO"
     WARNING = "WARNING"
     ERROR = "ERROR"
+    SUCCESS = "SUCCESS"

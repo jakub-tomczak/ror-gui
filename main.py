@@ -423,6 +423,8 @@ class RORWindow:
             color = 'red3'
         elif severity == Severity.WARNING:
             color = 'DarkOrange2'
+        elif severity == Severity.SUCCESS:
+            color = 'forest green'
         self.log_console.add_text(data, color)
 
     def run(self):
