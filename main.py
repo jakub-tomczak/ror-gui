@@ -186,7 +186,7 @@ class RORWindow:
         self.root_frames['log_console'] = log_console_frame
         ttk.Label(log_console_frame, text='Log window')\
             .grid(row=0, column=0, sticky=(tk.NSEW))
-        self.log_console = ScrolledText(
+        self.log_console = ScrolledText(self.root,
             log_console_frame, height=10, state=tk.DISABLED)
         # update grid for log console
         self.log_console.grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
@@ -393,14 +393,12 @@ class RORWindow:
         if self.log_console is None:
             return
         data = f'[{get_log_time()}][{severity.value}]: {message}\n'
-        # hack with changing state - to make log console readonly
-        # set state to normal to be able to add a new text
-        self.log_console.configure(state='normal')
-        self.log_console.insert(tk.END, data)
-        # disable adding new texts
-        self.log_console.configure(state='disabled')
-        # scroll to the end
-        self.log_console.see('end')
+        color = None
+        if severity == Severity.ERROR:
+            color = 'red3'
+        elif severity == Severity.WARNING:
+            color = 'DarkOrange2'
+        self.log_console.add_text(data, color)
 
     def run(self):
         style = ThemedStyle(self.root)
