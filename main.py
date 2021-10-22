@@ -6,7 +6,6 @@ import os.path as path
 from ror.Dataset import Dataset, RORDataset
 from ror.CalculationsException import CalculationsException
 from ror.RORParameters import RORParameters
-import ror.Relation as relation
 from ror.data_loader import RORParameter
 from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
@@ -59,11 +58,11 @@ class RORWindow:
                 self.parameters.get_parameter(RORParameter.PRECISION)
             )
             self.current_filename = filename
-            self.log(f'Opened file {filename}')
+            self.log(f'Opened file {filename}', Severity.SUCCESS)
             self.show_information_tab()
         except Exception as e:
             self.current_filename = None
-            self.log(f"Failed to read file. Exception {e}")
+            self.log(f"Failed to read file. Exception {e}", Severity.ERROR)
             raise e
 
     def open_file_dialog(self):
@@ -71,16 +70,16 @@ class RORWindow:
             filename = get_file()
         except Exception as e:
             self.current_filename = None
-            self.log(f"Failed to get file. Exception {e}")
+            self.log(f"Failed to get file. Exception {e}", Severity.ERROR)
         if filename == '':
             self.current_filename = None
-            self.log('No file selected')
+            self.log('No file selected', Severity.WARNING)
         else:
             self.open_file(filename)
 
     def save_file(self):
         if self.dataset is None:
-            self.log('Dataset is empty')
+            self.log('Dataset is empty', Severity.ERROR)
             return
 
         if not self.validate_model():
@@ -103,13 +102,13 @@ class RORWindow:
         if self.current_filename is not None:
             self.open_file(self.current_filename)
             self.log(
-                f'Canceleed changes - reopened file {self.current_filename}')
+                f'Canceled changes - reopened file {self.current_filename}', Severity.SUCCESS)
         else:
-            self.log('No file is currently opened')
+            self.log('No file is currently opened', Severity.WARNING)
 
     def validate_model(self) -> bool:
         if self.parameters is None:
-            self.log('parameters object is None')
+            self.log('parameters object is None', Severity.ERROR)
             return False
 
         parameters_are_valid = True
@@ -122,7 +121,7 @@ class RORWindow:
             aggregation_method_name = self.aggregation_method.get_aggregation_method_name()
             self.parameters.add_parameter(RORParameter.RESULTS_AGGREGATOR, aggregation_method_name)
         except:
-            self.log('Failed to get aggregation method')
+            self.log('Failed to get aggregation method', Severity.ERROR)
             parameters_are_valid = False
         return parameters_are_valid
 
@@ -205,8 +204,10 @@ class RORWindow:
         self.result_windows[tab] = ResultWindow(
             self.log,
             self.root,
+            dataset,
+            parameters,
             tab,
-            self.on_result_close
+            self.on_result_close,
         )
         try:
             result = solve_problem(
@@ -218,9 +219,9 @@ class RORWindow:
             )
             self.result_windows[tab].set_result(result, dataset.alternatives, parameters)
         except CalculationsException as e:
-            self.log(f'Failed to finish calculations: {e}')
+            self.log(f'Failed to finish calculations: {e}', Severity.ERROR)
         except Exception as e:
-            self.log(f'Failed to solve problem: {e}')
+            self.log(f'Failed to solve problem: {e}', Severity.ERROR)
             raise e
 
     def solve(self):
@@ -299,9 +300,9 @@ class RORWindow:
 
     def show_information_tab(self):
         if self.dataset is None:
-            self.log('No dataset available')
+            self.log('No dataset available', Severity.ERROR)
         if self.current_filename is None or self.current_filename == '':
-            self.log('Filename is invalid')
+            self.log('Filename is invalid', Severity.ERROR)
         filename = self.current_filename
         # information frame
         information_box, information_box_bottom = self.create_information_tab()
