@@ -8,11 +8,11 @@ import ror.alpha as ror_alpha
 
 from utils.AlphaValueWidget import AlphaValueWidget
 from utils.ScrollableFrame import ScrollableFrame
-from utils.Severity import Severity
+from utils.type_aliases import LoggerFunc
 
 
 class AlphaValuesFrame:
-    def __init__(self, root: tk.Tk, logger: Callable[[str, Severity], None]):
+    def __init__(self, root: tk.Tk, logger: LoggerFunc):
         self.root = ttk.Frame(root)
 
         self.root.rowconfigure(0, weight=9)
