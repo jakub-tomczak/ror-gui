@@ -18,6 +18,7 @@ from utils.ScrollableFrame import ScrollableFrame
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
 from utils.Severity import Severity
+from utils.tk.io_helper import save_model
 from utils.type_aliases import LoggerFunc
 
 
@@ -39,6 +40,8 @@ class ResultWindow(tk.Frame):
         self.ranks_tab: ttk.Notebook = None
         self.final_image_frame: tk.Frame = None
         self.__overview: ttk.Notebook = None
+        self.__ror_result: RORResult = None
+        self.__ror_parameters: RORParameters = None
         self.explain_alternatives_object: ExplainAlternatives = None
         self.init_gui()
 
@@ -72,6 +75,8 @@ class ResultWindow(tk.Frame):
     def set_result(self, result: RORResult, alternatives: List[str], parameters: RORParameters):
         # display all ranks
         if result is not None:
+            self.__ror_result = result
+            self.__ror_parameters = parameters
             # display ranks
             # notebook tabs exchanges
             # however scrollbar in each tab behaves as one scrollbar - 
@@ -130,10 +135,15 @@ class ResultWindow(tk.Frame):
 
             self.__solution_properties_tab = ttk.Frame(self.__overview)
             self.__overview.add(self.__solution_properties_tab, text='Model properties')
+
+            self.__solution_properties_tab.rowconfigure(0, weight=3)
+            self.__solution_properties_tab.rowconfigure(1, weight=3)
+            self.__solution_properties_tab.rowconfigure(2, weight=1)
             
             # parameters
             parameters_frame = tk.Frame(self.__solution_properties_tab)
-            parameters_frame.pack(anchor=tk.NW, expand=1, fill=tk.X)
+            parameters_frame.grid(row=0, sticky=tk.NSEW)
+            # parameters_frame.pack(anchor=tk.NW, expand=1, fill=tk.X)
 
             ttk.Label(parameters_frame, text='Parameters', font=('Arial', 17)).pack(anchor=tk.NW)
             method_parameters: List[Tuple[str, str]] = []
@@ -152,12 +162,30 @@ class ResultWindow(tk.Frame):
             preferences_frame.rowconfigure(0, weight=9)
             preferences_frame.columnconfigure(0, weight=1)
             preferences_frame.columnconfigure(1, weight=1)
-            preferences_frame.pack(anchor=tk.NW)
+            # preferences_frame.pack(anchor=tk.NW)
+            preferences_frame.grid(row=1, sticky=tk.NSEW)
             ttk.Label(preferences_frame, text='Preference relations', font=('Arial', 17)).grid(row=0, sticky=tk.NW)
             preferences = PreferenceRelationsFrame(preferences_frame, result.model.dataset, False, self.__logger)
             preferences.grid(row=1, column=0, sticky=tk.NSEW)
             intensity_preferences = PreferenceIntensityRelationsFrame(preferences_frame, result.model.dataset, False, self.__logger)
             intensity_preferences.grid(row=1, column=1, sticky=tk.NSEW)
+
+            buttons = ttk.Frame(self.__solution_properties_tab)
+            # buttons.pack(anchor=tk.NW)
+            buttons.grid(row=2, sticky=tk.EW)
+            buttons.rowconfigure(0, weight=1)
+            for col in range(4):
+                buttons.columnconfigure(col, weight=1)
+            ttk.Button(
+                buttons,
+                text='Save model',
+                command=lambda: self.__save_model()
+            ).grid(row=0, column=1, sticky=tk.NSEW)
+            ttk.Button(
+                buttons,
+                text='Save model to latex',
+                command=lambda: self.__save_model()
+            ).grid(row=0, column=2, sticky=tk.NSEW)
 
             # explain result frame
             self.explain_alternatives_object = ExplainAlternatives(
@@ -166,6 +194,18 @@ class ResultWindow(tk.Frame):
                 alternatives
             )
             self.__overview.add(self.explain_alternatives_object, text='Explain position in rank')
+        else:
+            self.__logger('Result is none', Severity.ERROR)
+
+    def __save_model(self):
+        if self.__ror_result is None or self.__ror_parameters is None:
+            self.__logger('Data is none, failed to save model', Severity.ERROR)
+            return
+        save_model(
+            self.__ror_result.model.dataset,
+            self.__ror_parameters,
+            f'{self.__ror_result.results_aggregator.name}_result',
+            self.__logger)
 
     def close_window(self):
         if self.__results_data is not None:

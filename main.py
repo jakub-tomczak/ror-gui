@@ -1,7 +1,6 @@
-from math import exp
 import tkinter as tk
 from tkinter import StringVar, ttk
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 import os.path as path
 
 from ror.Dataset import Dataset, RORDataset
@@ -13,6 +12,7 @@ from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.DataTab import DataTab
 from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
+from utils.tk.WeightedAggregatorOptionsDialog import AlphaValueWithWeight, WeightedAggregatorOptionsDialog
 from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
 from utils.ResultWindow import ResultWindow
 from utils.Severity import Severity
@@ -22,6 +22,8 @@ from utils.time import get_log_time
 from utils.file_handler import get_file, open_file
 from datetime import datetime
 from ttkthemes import ThemedStyle
+
+from utils.tk.io_helper import save_model
 
 
 class RORWindow:
@@ -77,26 +79,15 @@ class RORWindow:
             self.open_file(filename)
 
     def save_file(self):
-        format = 'txt'
+        if self.dataset is None:
+            self.log('Dataset is empty')
+            return
+
         if not self.validate_model():
             self.log('Failed to save model, model is not valid', Severity.ERROR)
             return
-        if self.dataset is not None:
-            splited = self.current_filename.split(f'.{format}')
-            if len(splited) != 2:
-                self.log('Failed to save file')
-            now = datetime.now()
-            date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
-            name = f'{splited[0]}_{date_time}'
-            try:
-                self.dataset.save_to_file(f'{name}.{format}', self.parameters)
-                self.log(f'Saved dataset to {name}.{format}')
-            except Exception as e:
-                self.log(
-                    f'Failed to save a file: {e}', severity=Severity.ERROR)
-                raise e
-        else:
-            self.log('Dataset is empty')
+        
+        save_model(self.dataset, self.parameters, self.current_filename, self.log)
 
     def close_file(self):
         self.table.clean_data()
@@ -200,11 +191,7 @@ class RORWindow:
     def clear_log(self):
         self.log_console.clear()
 
-    def solve(self):
-        if not self.validate_model():
-            self.log('Failed to solve model, model is not valid', Severity.ERROR)
-            return
-
+    def __run_solver(self, dataset: RORDataset, parameters: RORParameters):
         tab = ttk.Frame(self.main_tab)
         tab.rowconfigure(0, weight=1)
         tab.columnconfigure(0, weight=1)
@@ -223,11 +210,11 @@ class RORWindow:
         )
         try:
             result = solve_problem(
-                self.dataset.deep_copy(),
-                self.parameters.deep_copy(),
+                dataset,
+                parameters,
                 self.log,
                 self.result_windows[tab].report_progress,
-                self.aggregation_method.get_aggregation_method_name()
+                parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR)
             )
             self.result_windows[tab].set_result(result, self.dataset.alternatives, self.parameters)
         except CalculationsException as e:
@@ -235,6 +222,44 @@ class RORWindow:
         except Exception as e:
             self.log(f'Failed to solve problem: {e}')
             raise e
+
+    def solve(self):
+        if not self.validate_model():
+            self.log('Failed to solve model, model is not valid', Severity.ERROR)
+            return
+
+        def on_weighted_window_parameters_set(alpha_with_weights: List[AlphaValueWithWeight]):
+            weights: List[float] = [item.weight for item in alpha_with_weights]
+            alpha_values: List[float] = [item.alpha_value for item in alpha_with_weights]
+            new_parameters = self.parameters.deep_copy()
+            new_parameters.add_parameter(RORParameter.ALPHA_WEIGHTS, weights)
+            new_parameters.add_parameter(RORParameter.ALPHA_VALUES, alpha_values)
+            alpha_with_weights = ', '.join(
+                [f'<alpha: {i.alpha_value}, weight: {i.weight}>' for i in alpha_with_weights]
+            )
+            self.log(f'Setting alpha values with weights {alpha_with_weights}')
+            # create a deep copy of dataset and parameters so next runs are not affected by changes in those
+            # variables
+            self.__run_solver(self.dataset.deep_copy(), new_parameters)
+
+        if self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) == 'WeightedResultAggregator':
+            try:
+                weights = self.parameters.get_parameter(RORParameter.ALPHA_WEIGHTS)
+                alpha_values = self.parameters.get_parameter(RORParameter.ALPHA_VALUES)
+                WeightedAggregatorOptionsDialog(
+                    self.root,
+                    'Add parameters for weighted aggregator',
+                    on_submit_callback=on_weighted_window_parameters_set,
+                    submit_button_text='Solve',
+                    weights=weights,
+                    alpha_values=alpha_values
+                )
+            except Exception as e:
+                self.log(f'Failed to use weighted aggregator, error: {e}', Severity.ERROR)
+        else:
+            # create a deep copy of dataset and parameters so next runs are not affected by changes in those
+            # variables
+            self.__run_solver(self.dataset.deep_copy(), self.parameters.deep_copy())
 
     def on_result_close(self, tab_frame: ttk.Frame):
         self.result_windows[tab_frame].master.destroy()
