@@ -1,4 +1,4 @@
-from math import exp, floor
+from math import floor
 import tkinter as tk
 from tkinter import ttk
 from typing import Callable, List, Tuple
@@ -136,8 +136,8 @@ class ResultWindow(tk.Frame):
             self.__solution_properties_tab = ttk.Frame(self.__overview)
             self.__overview.add(self.__solution_properties_tab, text='Model properties')
 
-            self.__solution_properties_tab.rowconfigure(0, weight=3)
-            self.__solution_properties_tab.rowconfigure(1, weight=3)
+            self.__solution_properties_tab.rowconfigure(0, weight=1)
+            self.__solution_properties_tab.rowconfigure(1, weight=1)
             self.__solution_properties_tab.rowconfigure(2, weight=1)
             
             # parameters
@@ -154,21 +154,21 @@ class ResultWindow(tk.Frame):
                 method_parameters.append((parameter.value, result.parameters.get_parameter(parameter)))
             parameters_table = Table(parameters_frame)
             parameters_table.set_simple_data(method_parameters)
-            parameters_table.pack(anchor=tk.NW)
+            parameters_table.pack(anchor=tk.NW, fill=tk.X, expand=0)
 
             # add preference relations
             preferences_frame = tk.Frame(self.__solution_properties_tab)
-            preferences_frame.rowconfigure(0, weight=1)
-            preferences_frame.rowconfigure(0, weight=9)
-            preferences_frame.columnconfigure(0, weight=1)
-            preferences_frame.columnconfigure(1, weight=1)
-            # preferences_frame.pack(anchor=tk.NW)
             preferences_frame.grid(row=1, sticky=tk.NSEW)
-            ttk.Label(preferences_frame, text='Preference relations', font=('Arial', 17)).grid(row=0, sticky=tk.NW)
-            preferences = PreferenceRelationsFrame(preferences_frame, result.model.dataset, False, self.__logger)
-            preferences.grid(row=1, column=0, sticky=tk.NSEW)
-            intensity_preferences = PreferenceIntensityRelationsFrame(preferences_frame, result.model.dataset, False, self.__logger)
-            intensity_preferences.grid(row=1, column=1, sticky=tk.NSEW)
+            ttk.Label(preferences_frame, text='Preference relations', font=('Arial', 17)).pack(anchor=tk.NW) #.grid(row=0, sticky=tk.NW)
+            preferences_windows = ttk.Frame(preferences_frame)
+            preferences_windows.rowconfigure(0, weight=1)
+            preferences_windows.columnconfigure(0, weight=1)
+            preferences_windows.columnconfigure(1, weight=1)
+            preferences_windows.pack(anchor=tk.NW, fill=tk.X, expand=1)
+            preferences = PreferenceRelationsFrame(preferences_windows, result.model.dataset, False, self.__logger)
+            preferences.grid(row=0, column=0, sticky=tk.NSEW)
+            intensity_preferences = PreferenceIntensityRelationsFrame(preferences_windows, result.model.dataset, False, self.__logger)
+            intensity_preferences.grid(row=0, column=1, sticky=tk.NSEW)
 
             buttons = ttk.Frame(self.__solution_properties_tab)
             # buttons.pack(anchor=tk.NW)
