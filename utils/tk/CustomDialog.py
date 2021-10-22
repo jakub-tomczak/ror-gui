@@ -15,6 +15,7 @@ class CustomDialog(tk.simpledialog.Dialog):
     ) -> None:
         self._on_cancel_text = StringVar(value=cancel_button_text)
         self._on_submit_text = StringVar(value=submit_button_text)
+        self.__is_destroyed: bool = False
         super().__init__(root, header)
 
     @abstractmethod
@@ -43,12 +44,17 @@ class CustomDialog(tk.simpledialog.Dialog):
             return
         data = self.get_data()
         self._on_submit(data)
-        self.destroy()
+        self._close()
 
     def cancel_pressed(self):
         if self._on_cancel is not None:
             self._on_cancel()
-        self.destroy()
+        self._close()
+
+    def _close(self):
+        if not self.__is_destroyed:
+            self.destroy()
+            self.__is_destroyed
 
     @abstractmethod
     def get_data(self) -> Any:

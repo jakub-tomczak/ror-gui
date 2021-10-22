@@ -54,6 +54,9 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
 
     def _on_submit(self, data: List[float]):
         if self.__on_submit is not None:
+            # close before calling __on_submit - while processing __on_submit dialog is still open, which looks weird
+            # closing == destroying the dialog before __on_submit doesn't cause any issues
+            self._close()
             self.__on_submit(data)
 
     def __add_weight(self):
