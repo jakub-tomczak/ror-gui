@@ -11,7 +11,7 @@ from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.DataTab import DataTab
 from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
-from utils.tk.WeightedAggregatorOptionsDialog import AlphaValueWithWeight, WeightedAggregatorOptionsDialog
+from utils.tk.WeightedAggregatorOptionsDialog import AlphaValueWithWeight, WeightedAggregatorOptionsDialog, WeightedAggregatorOptionsDialogResult
 from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
 from utils.ResultWindow import ResultWindow
 from utils.Severity import Severity
@@ -229,12 +229,14 @@ class RORWindow:
             self.log('Failed to solve model, model is not valid', Severity.ERROR)
             return
 
-        def on_weighted_window_parameters_set(alpha_with_weights: List[AlphaValueWithWeight]):
+        def on_weighted_window_parameters_set(parameters: WeightedAggregatorOptionsDialogResult):
+            alpha_with_weights, resolver = parameters
             weights: List[float] = [item.weight for item in alpha_with_weights]
             alpha_values: List[float] = [item.alpha_value for item in alpha_with_weights]
             new_parameters = self.parameters.deep_copy()
             new_parameters.add_parameter(RORParameter.ALPHA_WEIGHTS, weights)
             new_parameters.add_parameter(RORParameter.ALPHA_VALUES, alpha_values)
+            new_parameters.add_parameter(RORParameter.TIE_RESOLVER, resolver)
             alpha_with_weights = ', '.join(
                 [f'<alpha: {i.alpha_value}, weight: {i.weight}>' for i in alpha_with_weights]
             )

@@ -1,10 +1,12 @@
 from functools import partial
-from math import exp
 import tkinter as tk
 from tkinter import StringVar, Variable, ttk
-from typing import Callable, List
+from typing import Callable, List, Tuple
+
+from ror.ror_solver import TIE_RESOLVERS
 from utils.tk.CustomDialog import CustomDialog
 from utils.ScrollableFrame import ScrollableFrame
+from utils.tk.TieResolverPicker import TieResolverPicker
 
 class AlphaValueWithWeight:
     def __init__(self, alpha_value: float, weight: float) -> None:
@@ -13,6 +15,8 @@ class AlphaValueWithWeight:
     
     def __repr__(self) -> str:
         return f'Alpha value: {self.alpha_value}, weight: {self.weight}'
+
+WeightedAggregatorOptionsDialogResult = Tuple[List[AlphaValueWithWeight], str]
 
 class WeightedAggregatorOptionsDialog(CustomDialog):
     def __init__(self,
@@ -39,12 +43,13 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
         self.__new_weight_value: tk.StringVar = StringVar()
         self.__new_alpha_value: tk.StringVar = StringVar()
         self.list_body: ttk.Frame = None
+        self.__resolver: TieResolverPicker = None
         # remove validation text when entering text
         self.__new_weight_value.trace('w', lambda *_: self.__validation_text.set(''))
         super().__init__(root, header, submit_button_text=submit_button_text, cancel_button_text=cancel_button_text)
     
-    def get_data(self) -> List[AlphaValueWithWeight]:
-        return self.__weights_list
+    def get_data(self) -> WeightedAggregatorOptionsDialogResult:
+        return (self.__weights_list, self.__resolver.tie_resolver_name)
 
     def _validate(self) -> bool:
         if len(self.__weights_list) < 1:
@@ -122,7 +127,8 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
         self.list_body.rowconfigure(1, weight=1)
         self.list_body.rowconfigure(2, weight=9)
         self.list_body.rowconfigure(3, weight=2)
-        self.list_body.rowconfigure(4, weight=1)
+        self.list_body.rowconfigure(4, weight=5)
+        self.list_body.rowconfigure(5, weight=1)
         self.list_body.columnconfigure(0, weight=1)
         ttk.Label(self.list_body, text='Set options for weighted aggregator', font=('Arial', 17), foreground='black')\
             .grid(row=0, column=0, sticky=tk.EW)
@@ -140,6 +146,8 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
         new_weight_input.pack(side=tk.LEFT, fill=tk.Y)
         ttk.Button(add_weight_frame, text='Add weight', command=self.__add_weight).\
             pack(side=tk.RIGHT, fill=tk.Y)
+        TieResolverPicker(self.list_body, TIE_RESOLVERS, 'NoResolver').\
+            grid(row=4, column=0, sticky=tk.NSEW)
         ttk.Label(self.list_body, textvariable=self.__validation_text, foreground='red').\
-            grid(row=4, column=0)
+            grid(row=5, column=0)
 
