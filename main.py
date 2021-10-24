@@ -12,6 +12,7 @@ from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.DataTab import DataTab
 from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
 from utils.tk.BordaAggregatorOptionsDialog import BordaAggregatorOptionsDialog, BordaAggregatorOptionsDialogResult
+from utils.tk.DefaultAggregatorOptionsDialog import DefaultAggregatorOptionsDialog, DefaultAggregatorOptionsDialogResult
 from utils.tk.WeightedAggregatorOptionsDialog import AlphaValueWithWeight, WeightedAggregatorOptionsDialog, WeightedAggregatorOptionsDialogResult
 from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
 from utils.ResultWindow import ResultWindow
@@ -267,7 +268,17 @@ class RORWindow:
                 self.__run_solver(self.dataset.deep_copy(), new_parameters)
             except Exception as e:
                 self.log(f'Failed to run solver with borda aggregator: {e}', Severity.ERROR)
-                raise e
+        
+        def on_default_window_parameters_set(parameters: DefaultAggregatorOptionsDialogResult):
+            try:
+                resolver = parameters
+                new_parameters = self.parameters.deep_copy()
+                new_parameters.add_parameter(RORParameter.TIE_RESOLVER, resolver)
+                self.log(f'Running Default aggregator with {resolver} resolver.')
+                self.__run_solver(self.dataset.deep_copy(), new_parameters)
+            except Exception as e:
+                self.log(f'Failed to run solver with default aggregator: {e}', Severity.ERROR)
+
 
         if self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) == 'WeightedResultAggregator':
             try:
@@ -283,7 +294,6 @@ class RORWindow:
                 )
             except Exception as e:
                 self.log(f'Failed to use weighted aggregator, error: {e}', Severity.ERROR)
-                raise e
         elif self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) == 'BordaResultAggregator':
             try:
                 BordaAggregatorOptionsDialog(
@@ -293,6 +303,15 @@ class RORWindow:
                 )
             except Exception as e:
                 self.log(f'Failed to use borda aggregator, error: {e}', Severity.ERROR)
+        elif self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) == 'DefaultResultAggregator':
+            try:
+                DefaultAggregatorOptionsDialog(
+                    self.root,
+                    'Add parameters for Default aggregator',
+                    on_submit_callback=on_default_window_parameters_set
+                )
+            except Exception as e:
+                self.log(f'Failed to use default aggregator, error: {e}', Severity.ERROR)
         else:
             # create a deep copy of dataset and parameters so next runs are not affected by changes in those
             # variables
