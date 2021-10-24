@@ -38,7 +38,7 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
     def __init__(self,
         root: tk.Frame,
         header: str,
-        on_submit_callback: Callable[[None], List[AlphaValueWithWeight]],
+        on_submit_callback: Callable[[WeightedAggregatorOptionsDialogResult], None],
         submit_button_text: str = 'Submit',
         cancel_button_text: str = 'Cancel',
         weights: List[float] = None,
