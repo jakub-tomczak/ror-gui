@@ -5,6 +5,7 @@ from typing import Callable, List, Tuple
 from collections import namedtuple
 
 from ror.ror_solver import TIE_RESOLVERS
+from utils.AlphaValueWithWeight import AlphaValueWithWeight
 from utils.tk.AlphaValueCountSliderFrame import DEFAULT_NUMBER_OF_ALPHA_VALUES, MAX_NUMBER_OF_ALPHA_VALUES, AlphaValueCountSliderFrame
 from utils.tk.CustomDialog import CustomDialog
 from utils.ScrollableFrame import ScrollableFrame
@@ -16,14 +17,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from enum import Enum
 import copy
 
-
-class AlphaValueWithWeight:
-    def __init__(self, alpha_value: float, weight: float) -> None:
-        self.alpha_value = alpha_value
-        self.weight = weight
-    
-    def __repr__(self) -> str:
-        return f'Alpha value: {self.alpha_value}, weight: {self.weight}'
 
 class WeightGeneratorType(Enum):
     CUSTOM = 'custom'
@@ -278,8 +271,8 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
         self.__display_alpha_values_generator()
         self.__update_graph()
 
-        self.__resolver = TieResolverPicker(self.list_body, TIE_RESOLVERS, 'NoResolver').\
-            grid(row=7, column=0, sticky=tk.NSEW)
+        self.__resolver = TieResolverPicker(self.list_body, TIE_RESOLVERS, 'NoResolver')
+        self.__resolver.grid(row=7, column=0, sticky=tk.NSEW)
         ttk.Label(self.list_body, textvariable=self.__validation_text, foreground='red').\
             grid(row=8, column=0)
         self.__weights_type_name.set(WeightGeneratorType.CUSTOM.value)

@@ -45,7 +45,7 @@ class Table(tksheet.Sheet):
 
     def set_pandas_data(self, data: pd.DataFrame, display_precision: int = 2):
         headers = ['alternative']
-        headers.extend(list(data.columns))
+        headers.extend([item[:12] for item in data.columns])
         self.headers(headers)
         numpy_data = data.to_numpy()
         # round data - numpy.tolist will convert data to float and the precision will be lost

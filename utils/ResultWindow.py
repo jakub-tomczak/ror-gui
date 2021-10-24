@@ -47,6 +47,7 @@ class ResultWindow(tk.Frame):
         self.__ror_result: RORResult = None
         self.__ror_parameters: RORParameters = parameters
         self.__ror_dataset: RORDataset = dataset
+        self.__image_count: int = 1
         self.explain_alternatives_object: ExplainAlternatives = None
         self.init_gui()
 
@@ -103,19 +104,27 @@ class ResultWindow(tk.Frame):
             self.__set_progress(floor(data.progress*100), data.status)
         self.update()
 
-    def __add_image(self, image: ImageDisplay):
-        self.ranks_tab.add(image, text=f'{image.image_name}', compound=tk.TOP, sticky=tk.NSEW, underline=2)
+    def __add_image(self, image: ImageDisplay, name: str = None):
+        self.ranks_tab.add(
+            image,
+            text=name if name is not None else str(self.__image_count),
+            compound=tk.TOP,
+            sticky=tk.NSEW,
+            underline=2
+        )
+        self.__image_count += 1
 
     def __display_model_parameters(self, root: ttk.Frame, parameters: RORParameters) -> tk.Frame:
         frame = ttk.Frame(root)
         ttk.Label(frame, text='Parameters', font=('Arial', 17)).pack(anchor=tk.NW)
         method_parameters: List[Tuple[str, str]] = []
+        precision = parameters.get_parameter(RORParameter.PRECISION)
         for parameter in RORParameter:
-            if parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) is not 'WeightedResultAggregator' \
-                and parameter == RORParameter.ALPHA_WEIGHTS:
-                # don't add weights parameter if not using WeightedResultAggregator
-                continue
-            method_parameters.append((parameter.value, parameters.get_parameter(parameter)))
+            if parameter in [RORParameter.ALPHA_VALUES, RORParameter.ALPHA_WEIGHTS]:
+                rounded_values = [round(value, precision) for value in parameters.get_parameter(parameter)]
+                method_parameters.append((parameter.value, rounded_values))
+            else:
+                method_parameters.append((parameter.value, parameters.get_parameter(parameter)))
         parameters_table = Table(frame)
         parameters_table.set_simple_data(method_parameters)
         parameters_table.pack(anchor=tk.NW, fill=tk.X, expand=0)
@@ -177,7 +186,7 @@ class ResultWindow(tk.Frame):
                 'final rank'
             )
             final_image.pack(fill=tk.BOTH, expand=1)
-            self.__add_image(final_image)
+            self.__add_image(final_image, name='final')
 
             self.ranks_tab.select(0)
             details_frame = ttk.Frame(self)

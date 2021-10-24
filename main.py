@@ -231,30 +231,43 @@ class RORWindow:
             return
 
         def on_weighted_window_parameters_set(parameters: WeightedAggregatorOptionsDialogResult):
-            alpha_with_weights, resolver = parameters
-            weights: List[float] = [item.weight for item in alpha_with_weights]
-            alpha_values: List[float] = [item.alpha_value for item in alpha_with_weights]
-            new_parameters = self.parameters.deep_copy()
-            new_parameters.add_parameter(RORParameter.ALPHA_WEIGHTS, weights)
-            new_parameters.add_parameter(RORParameter.ALPHA_VALUES, alpha_values)
-            new_parameters.add_parameter(RORParameter.TIE_RESOLVER, resolver)
-            alpha_with_weights = ', '.join(
-                [f'<alpha: {i.alpha_value}, weight: {i.weight}>' for i in alpha_with_weights]
-            )
-            self.log(f'Setting alpha values with weights {alpha_with_weights}')
-            # create a deep copy of dataset and parameters so next runs are not affected by changes in those
-            # variables
-            self.__run_solver(self.dataset.deep_copy(), new_parameters)
+            try:
+                alpha_with_weights, resolver = parameters
+                weights: List[float] = [item.weight for item in alpha_with_weights]
+                alpha_values: List[float] = [item.alpha_value for item in alpha_with_weights]
+                new_parameters = self.parameters.deep_copy()
+                
+                new_parameters.add_parameter(RORParameter.ALPHA_WEIGHTS, weights)
+                new_parameters.add_parameter(RORParameter.NUMBER_OF_ALPHA_VALUES, len(alpha_values))
+                new_parameters.add_parameter(RORParameter.ALPHA_VALUES, alpha_values)
+                new_parameters.add_parameter(RORParameter.TIE_RESOLVER, resolver)
+                alpha_with_weights = ', '.join(
+                    [f'<alpha: {i.alpha_value}, weight: {i.weight}>' for i in alpha_with_weights]
+                )
+                self.log(f'Setting alpha values with weights {alpha_with_weights}')
+                # create a deep copy of dataset and parameters so next runs are not affected by changes in those
+                # variables
+                self.__run_solver(self.dataset.deep_copy(), new_parameters)
+            except Exception as e:
+                self.log(f'Failed to run solver with weighted aggregator: {e}', Severity.ERROR)
+                raise e
 
-        def on_weighted_window_parameters_set(parameters: BordaAggregatorOptionsDialogResult):
-            alpha_values_count, resolver = parameters
-            new_parameters = self.parameters.deep_copy()
-            new_parameters.add_parameter(RORParameter.NUMBER_OF_ALPHA_VALUES, alpha_values_count)
-            new_parameters.add_parameter(RORParameter.TIE_RESOLVER, resolver)
-            self.log(f'Running Borda aggregator with {alpha_values_count} alpha values, resolver: {resolver}')
-            # create a deep copy of dataset and parameters so next runs are not affected by changes in those
-            # variables
-            self.__run_solver(self.dataset.deep_copy(), new_parameters)
+        def on_borda_window_parameters_set(parameters: BordaAggregatorOptionsDialogResult):
+            try:
+                alpha_values_count, alpha_with_weights = parameters
+                weights: List[float] = [item.weight for item in alpha_with_weights]
+                alpha_values: List[float] = [item.alpha_value for item in alpha_with_weights]
+                new_parameters = self.parameters.deep_copy()
+                new_parameters.add_parameter(RORParameter.NUMBER_OF_ALPHA_VALUES, alpha_values_count)
+                new_parameters.add_parameter(RORParameter.ALPHA_WEIGHTS, weights)
+                new_parameters.add_parameter(RORParameter.ALPHA_VALUES, alpha_values)
+                self.log(f'Running Borda aggregator with {alpha_values_count} alpha values.')
+                # create a deep copy of dataset and parameters so next runs are not affected by changes in those
+                # variables
+                self.__run_solver(self.dataset.deep_copy(), new_parameters)
+            except Exception as e:
+                self.log(f'Failed to run solver with borda aggregator: {e}', Severity.ERROR)
+                raise e
 
         if self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) == 'WeightedResultAggregator':
             try:
@@ -276,7 +289,7 @@ class RORWindow:
                 BordaAggregatorOptionsDialog(
                     self.root,
                     'Add parameters for Borda aggregator',
-                    on_submit_callback=on_weighted_window_parameters_set
+                    on_submit_callback=on_borda_window_parameters_set
                 )
             except Exception as e:
                 self.log(f'Failed to use borda aggregator, error: {e}', Severity.ERROR)
