@@ -64,7 +64,6 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
         self.__number_of_alpha_values.trace('w', lambda *_: self.__update_number_of_alpha_values())
         self.list_body: ttk.Frame = None
         self.__resolver: TieResolverPicker = None
-        self.__tie_resolver_picker: TieResolverPicker = None
         self.__weights_type_name: tk.StringVar = StringVar()
         self.__weights_type_name.trace('w', lambda *_: self.__on_weights_generator_change())
         self.__weights_type_picker: ttk.Combobox = None
@@ -279,7 +278,7 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
         self.__display_alpha_values_generator()
         self.__update_graph()
 
-        self.__tie_resolver_picker = TieResolverPicker(self.list_body, TIE_RESOLVERS, 'NoResolver').\
+        self.__resolver = TieResolverPicker(self.list_body, TIE_RESOLVERS, 'NoResolver').\
             grid(row=7, column=0, sticky=tk.NSEW)
         ttk.Label(self.list_body, textvariable=self.__validation_text, foreground='red').\
             grid(row=8, column=0)
