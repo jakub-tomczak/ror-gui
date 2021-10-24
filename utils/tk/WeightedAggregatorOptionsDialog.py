@@ -1,11 +1,11 @@
 from functools import partial
 import tkinter as tk
 from tkinter import IntVar, StringVar, Variable, ttk
-from tkinter.constants import E
 from typing import Callable, List, Tuple
 from collections import namedtuple
 
 from ror.ror_solver import TIE_RESOLVERS
+from utils.tk.AlphaValueCountSliderFrame import DEFAULT_NUMBER_OF_ALPHA_VALUES, MAX_NUMBER_OF_ALPHA_VALUES, AlphaValueCountSliderFrame
 from utils.tk.CustomDialog import CustomDialog
 from utils.ScrollableFrame import ScrollableFrame
 from utils.tk.TieResolverPicker import TieResolverPicker
@@ -31,8 +31,6 @@ class WeightGeneratorType(Enum):
     NORMAL_DISTRIBUTION = 'normal distribution'
 
 Coordinates = namedtuple('Coordinates', ['x', 'y'])
-DEFAULT_NUMBER_OF_ALPHA_VALUES = 3
-MAX_NUMBER_OF_ALPHA_VALUES = 15
 
 WeightedAggregatorOptionsDialogResult = Tuple[List[AlphaValueWithWeight], str]
 
@@ -130,29 +128,15 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
         self.__display_weights_list()
         self.__update_graph()
 
-    def __set_alpha_values_using_scale(self, value):
-        try:
-            val = float(value)
-            self.__number_of_alpha_values.set(round(val))
-        except:
-            pass
+    def __set_alpha_values_using_scale(self, value: int):
+        self.__number_of_alpha_values.set(value)
     
     def __display_alpha_value_count_slider(self, root: ttk.Frame) -> ttk.Frame:
-        inner_fr = ttk.Frame(root, padding=20)
-        inner_fr.columnconfigure(0, weight=1)
-        inner_fr.columnconfigure(1, weight=19)
-        inner_fr.rowconfigure(0, weight=1)
-        inner_fr.rowconfigure(1, weight=1)
-        ttk.Label(inner_fr, text='Number of alpha values').grid(row=0, column=0, sticky=tk.W)
-        ttk.Label(inner_fr, textvariable=self.__number_of_alpha_values).grid(row=0, column=1, sticky=tk.W)
-        ttk.Scale(
-            inner_fr,
-            from_=DEFAULT_NUMBER_OF_ALPHA_VALUES,
-            to=MAX_NUMBER_OF_ALPHA_VALUES,
-            orient='horizontal',
-            command=self.__set_alpha_values_using_scale
-        ).grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
-        return inner_fr
+        return AlphaValueCountSliderFrame(
+            root,
+            self.__set_alpha_values_using_scale,
+            DEFAULT_NUMBER_OF_ALPHA_VALUES
+        )
 
     def __generate_alpha_weights(self, method: WeightGeneratorType):
         points: int = self.__number_of_alpha_values.get()
@@ -256,13 +240,13 @@ class WeightedAggregatorOptionsDialog(CustomDialog):
     
     def __display_alpha_values_generator(self):
         fr = ttk.Frame(self.list_body)
-        fr.grid(row=5, column=0, sticky=tk.NSEW)
         form: ttk.Frame = None
         if self.__weights_type_name.get() == WeightGeneratorType.CUSTOM.value:
             form = self.__display_alpha_value_form(fr)
         else:
             form = self.__display_alpha_value_count_slider(fr)
         form.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+        fr.grid(row=5, column=0, sticky=tk.NSEW)
 
     def remove_weight(self, alpha_with_widget):
         if alpha_with_widget is not None:
