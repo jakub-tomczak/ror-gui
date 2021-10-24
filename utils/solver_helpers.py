@@ -16,9 +16,8 @@ def solve_problem(
 ) -> RORResult:
     logger_callback('Starting calculations')
 
+    result = None
     try:
-        result = None
-        raise Exception('some exceptiono')
         result = solve_model(dataset, parameters, aggregation_method, progress_callback=calculations_callback)
     except Exception as e:
         calculations_callback(ProcessingCallbackData(-1, e))
