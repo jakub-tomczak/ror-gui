@@ -11,7 +11,7 @@ from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.DataTab import DataTab
 from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
-from utils.tk.BordaAggregatorOptionsDialog import BordaAggregatorOptionsDialog, BordaAggregatorOptionsDialogResult
+from utils.tk.BordaAggregatorOptionsDialog import BordaCopelandAggregatorOptionsDialog, BordaCopelandAggregatorOptionsDialogResult
 from utils.tk.DefaultAggregatorOptionsDialog import DefaultAggregatorOptionsDialog, DefaultAggregatorOptionsDialogResult
 from utils.tk.WeightedAggregatorOptionsDialog import AlphaValueWithWeight, WeightedAggregatorOptionsDialog, WeightedAggregatorOptionsDialogResult
 from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
@@ -253,21 +253,21 @@ class RORWindow:
                 self.log(f'Failed to run solver with weighted aggregator: {e}', Severity.ERROR)
                 raise e
 
-        def on_borda_window_parameters_set(parameters: BordaAggregatorOptionsDialogResult):
+        def on_borda_copeland_window_parameters_set(parameters: BordaCopelandAggregatorOptionsDialogResult):
             try:
-                alpha_values_count, alpha_with_weights = parameters
+                alpha_values_count, alpha_with_weights, voting_method_name = parameters
                 weights: List[float] = [item.weight for item in alpha_with_weights]
                 alpha_values: List[float] = [item.alpha_value for item in alpha_with_weights]
                 new_parameters = self.parameters.deep_copy()
                 new_parameters.add_parameter(RORParameter.NUMBER_OF_ALPHA_VALUES, alpha_values_count)
                 new_parameters.add_parameter(RORParameter.ALPHA_WEIGHTS, weights)
                 new_parameters.add_parameter(RORParameter.ALPHA_VALUES, alpha_values)
-                self.log(f'Running Borda aggregator with {alpha_values_count} alpha values.')
+                self.log(f'Running {voting_method_name} aggregator with {alpha_values_count} alpha values.')
                 # create a deep copy of dataset and parameters so next runs are not affected by changes in those
                 # variables
                 self.__run_solver(self.dataset.deep_copy(), new_parameters)
             except Exception as e:
-                self.log(f'Failed to run solver with borda aggregator: {e}', Severity.ERROR)
+                self.log(f'Failed to run solver with {voting_method_name} aggregator: {e}', Severity.ERROR)
         
         def on_default_window_parameters_set(parameters: DefaultAggregatorOptionsDialogResult):
             try:
@@ -279,8 +279,8 @@ class RORWindow:
             except Exception as e:
                 self.log(f'Failed to run solver with default aggregator: {e}', Severity.ERROR)
 
-
-        if self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) == 'WeightedResultAggregator':
+        method_name = self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR)
+        if method_name == 'WeightedResultAggregator':
             try:
                 weights = self.parameters.get_parameter(RORParameter.ALPHA_WEIGHTS)
                 alpha_values = self.parameters.get_parameter(RORParameter.ALPHA_VALUES)
@@ -294,16 +294,18 @@ class RORWindow:
                 )
             except Exception as e:
                 self.log(f'Failed to use weighted aggregator, error: {e}', Severity.ERROR)
-        elif self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) == 'BordaResultAggregator':
+        elif method_name in ['BordaResultAggregator', 'CopelandResultAggregator']:
+            voting_method_name = 'Borda' if method_name == 'BordaResultAggregator' else 'Copeland'
             try:
-                BordaAggregatorOptionsDialog(
+                BordaCopelandAggregatorOptionsDialog(
                     self.root,
-                    'Add parameters for Borda aggregator',
-                    on_submit_callback=on_borda_window_parameters_set
+                    f'Add parameters for {voting_method_name} aggregator',
+                    voting_method_name,
+                    on_submit_callback=on_borda_copeland_window_parameters_set
                 )
             except Exception as e:
-                self.log(f'Failed to use borda aggregator, error: {e}', Severity.ERROR)
-        elif self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR) == 'DefaultResultAggregator':
+                self.log(f'Failed to use {voting_method_name} aggregator, error: {e}', Severity.ERROR)
+        elif method_name == 'DefaultResultAggregator':
             try:
                 DefaultAggregatorOptionsDialog(
                     self.root,
