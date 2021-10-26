@@ -3,12 +3,11 @@ from tkinter import ttk
 from typing import Callable, List, Tuple
 from utils.tk.AlphaValueCountSliderFrame import DEFAULT_NUMBER_OF_ALPHA_VALUES, AlphaValueCountSliderFrame
 from utils.tk.CustomDialog import CustomDialog
-from utils.AlphaValueWithWeight import AlphaValueWithWeight
 import numpy as np
 
 
-# number of alpha values, tie resolver, voting method name
-BordaCopelandAggregatorOptionsDialogResult = Tuple[int, List[AlphaValueWithWeight], str]
+# number of alpha values, voting method name {Borda or Copeland}
+BordaCopelandAggregatorOptionsDialogResult = Tuple[int, str]
 
 
 class BordaCopelandAggregatorOptionsDialog(CustomDialog):
@@ -54,13 +53,5 @@ class BordaCopelandAggregatorOptionsDialog(CustomDialog):
     def get_data(self) -> BordaCopelandAggregatorOptionsDialogResult:
         return (
             self.__number_of_alpha_values,
-            [
-                AlphaValueWithWeight(alpha, weight)
-                for alpha, weight
-                in zip(
-                    np.linspace(start=0, stop=1, num=self.__number_of_alpha_values),
-                    np.ones((self.__number_of_alpha_values)
-                ))
-            ],
             self.voting_method_name
         )

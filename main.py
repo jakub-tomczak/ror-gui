@@ -255,13 +255,9 @@ class RORWindow:
 
         def on_borda_copeland_window_parameters_set(parameters: BordaCopelandAggregatorOptionsDialogResult):
             try:
-                alpha_values_count, alpha_with_weights, voting_method_name = parameters
-                weights: List[float] = [item.weight for item in alpha_with_weights]
-                alpha_values: List[float] = [item.alpha_value for item in alpha_with_weights]
+                alpha_values_count, voting_method_name = parameters
                 new_parameters = self.parameters.deep_copy()
                 new_parameters.add_parameter(RORParameter.NUMBER_OF_ALPHA_VALUES, alpha_values_count)
-                new_parameters.add_parameter(RORParameter.ALPHA_WEIGHTS, weights)
-                new_parameters.add_parameter(RORParameter.ALPHA_VALUES, alpha_values)
                 self.log(f'Running {voting_method_name} aggregator with {alpha_values_count} alpha values.')
                 # create a deep copy of dataset and parameters so next runs are not affected by changes in those
                 # variables
