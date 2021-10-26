@@ -18,7 +18,12 @@ def solve_problem(
 
     result = None
     try:
-        result = solve_model(dataset, parameters, aggregation_method, progress_callback=calculations_callback)
+        result = solve_model(
+            dataset,
+            parameters,
+            aggregation_method,
+            progress_callback=calculations_callback
+        )
     except Exception as e:
         calculations_callback(ProcessingCallbackData(-1, e))
         logger_callback(f'Failed during calculations: {e}', Severity.ERROR)
