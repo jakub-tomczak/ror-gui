@@ -75,7 +75,7 @@ class PreferenceIntensityRelationsFrame(ttk.Frame):
                 label = ttk.Label(
                     inside_frame,
                     text=f'{index+1}. {label}',
-                    wraplength=200,
+                    wraplength=150,
                     justify="left", padding=2
                 ).grid(column=0, row=0, sticky=tk.W)
                 if self.__editable:
