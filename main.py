@@ -154,8 +154,8 @@ class RORWindow:
             label='Clear log', command=lambda: self.log_console.clear(), accelerator="F1")
 
     def init_gui(self):
-        self.root.columnconfigure(0, weight=9)
-        self.root.columnconfigure(1, weight=1)
+        self.root.columnconfigure(0, weight=75)
+        self.root.columnconfigure(1, weight=25, minsize=300)
         self.root.rowconfigure(0, weight=5)
         self.root.rowconfigure(1, weight=1)
         screen_width = int(self.root.winfo_screenwidth()*.8)
@@ -487,29 +487,28 @@ class RORWindow:
         # bottom tab buttons
         information_box_bottom.columnconfigure(0, weight=1)
         information_box_bottom.columnconfigure(1, weight=1)
-        information_box_bottom.columnconfigure(2, weight=1)
-        information_box_bottom.columnconfigure(3, weight=1)
         information_box_bottom.rowconfigure(0, weight=1)
+        information_box_bottom.rowconfigure(1, weight=1)
         ttk.Button(
             master=information_box_bottom,
             text='Solve',
             command=lambda: self.solve()
-        ).grid(column=0, row=0)
+        ).grid(column=0, row=0, sticky=tk.N)
         ttk.Button(
             master=information_box_bottom,
             text='Save problem',
             command=lambda: self.save_file()
-        ).grid(column=1, row=0)
+        ).grid(column=1, row=0, sticky=tk.N)
         ttk.Button(
             master=information_box_bottom,
             text='Cancel changes',
             command=lambda: self.cancel_changes()
-        ).grid(column=2, row=0)
+        ).grid(column=0, row=1, sticky=tk.N)
         ttk.Button(
             master=information_box_bottom,
             text='Close file',
             command=lambda: self.close_file()
-        ).grid(column=3, row=0)
+        ).grid(column=1, row=1, sticky=tk.N)
 
     def hide_information_tab(self):
         information_box, information_box_bottom = self.create_information_tab()
