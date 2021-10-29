@@ -23,9 +23,9 @@ class ScrolledText(tk.Text):
         self.button_frame: ttk.Frame = ttk.Frame(self.frame)
         self.button_frame.pack(side=RIGHT, fill=Y)
         self.__window_object: tk.Tk = window_object
-        self.clear_button: ttk.Button = ttk.Button(text="Clear", master=self.button_frame, command=lambda: self.clear())
+        self.clear_button: ttk.Button = ttk.Button(text="Clear log", master=self.button_frame, command=lambda: self.clear())
         self.clear_button.pack(anchor=tk.N, fill=X)
-        self.copy_button: ttk.Button = ttk.Button(text='Copy', master=self.button_frame, command=lambda: self.__copy_all())
+        self.copy_button: ttk.Button = ttk.Button(text='Copy log', master=self.button_frame, command=lambda: self.__copy_all())
         self.copy_button.pack(anchor=tk.S, fill=X)
         self.vbar.pack(side=RIGHT, fill=BOTH)
 
