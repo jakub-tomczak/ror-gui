@@ -280,6 +280,7 @@ class RORWindow:
             self.result_windows[tab].set_result(result, dataset.alternatives, parameters)
         except CalculationsException as e:
             self.log(f'Failed to finish calculations: {e}', Severity.ERROR)
+            raise e
         except Exception as e:
             self.log(f'Failed to solve problem: {e}', Severity.ERROR)
             raise e
@@ -309,7 +310,8 @@ class RORWindow:
                 self.__run_solver(self.dataset.deep_copy(), new_parameters)
             except Exception as e:
                 self.log(f'Failed to run solver with weighted aggregator: {e}', Severity.ERROR)
-                raise e
+                if self.debug:
+                    raise e
 
         def on_borda_copeland_window_parameters_set(parameters: BordaCopelandAggregatorOptionsDialogResult):
             try:
@@ -322,6 +324,8 @@ class RORWindow:
                 self.__run_solver(self.dataset.deep_copy(), new_parameters)
             except Exception as e:
                 self.log(f'Failed to run solver with {voting_method_name} aggregator: {e}', Severity.ERROR)
+                if self.debug:
+                    raise e
         
         def on_default_window_parameters_set(parameters: DefaultAggregatorOptionsDialogResult):
             try:
@@ -332,6 +336,8 @@ class RORWindow:
                 self.__run_solver(self.dataset.deep_copy(), new_parameters)
             except Exception as e:
                 self.log(f'Failed to run solver with default aggregator: {e}', Severity.ERROR)
+                if self.debug:
+                    raise e
 
         method_name = self.parameters.get_parameter(RORParameter.RESULTS_AGGREGATOR)
         if method_name == 'WeightedResultAggregator':
@@ -348,6 +354,8 @@ class RORWindow:
                 )
             except Exception as e:
                 self.log(f'Failed to use weighted aggregator, error: {e}', Severity.ERROR)
+                if self.debug:
+                    raise e
         elif method_name in ['BordaResultAggregator', 'CopelandResultAggregator']:
             voting_method_name = 'Borda' if method_name == 'BordaResultAggregator' else 'Copeland'
             try:
@@ -359,6 +367,8 @@ class RORWindow:
                 )
             except Exception as e:
                 self.log(f'Failed to use {voting_method_name} aggregator, error: {e}', Severity.ERROR)
+                if self.debug:
+                    raise e
         elif method_name == 'DefaultResultAggregator':
             try:
                 DefaultAggregatorOptionsDialog(
@@ -368,6 +378,8 @@ class RORWindow:
                 )
             except Exception as e:
                 self.log(f'Failed to use default aggregator, error: {e}', Severity.ERROR)
+                if self.debug:
+                    raise e
         else:
             # create a deep copy of dataset and parameters so next runs are not affected by changes in those
             # variables
