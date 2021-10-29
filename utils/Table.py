@@ -1,6 +1,7 @@
 from tkinter import ttk
 from typing import List, Tuple, Union
-from ror.Dataset import Dataset, RORDataset
+from ror.Dataset import Dataset
+from ror.dataset_constants import CRITERION_TYPES
 from ror.number_utils import format_number
 import tksheet
 import pandas as pd
@@ -35,7 +36,7 @@ class Table(tksheet.Sheet):
             new_row = [alternative]
             # add results on the rest of columns, flip values if column is of cost type (already filpped)
             for (_, criterion_type), value in zip(data.criteria, row):
-                if criterion_type == RORDataset.CRITERION_TYPES["cost"]:
+                if criterion_type == CRITERION_TYPES["cost"]:
                     new_row.append(format_number(-value, display_precision))
                 else:
                     new_row.append(format_number(value, display_precision))

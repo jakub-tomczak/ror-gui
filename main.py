@@ -3,7 +3,8 @@ from tkinter import StringVar, ttk
 from typing import Dict, List, Tuple
 import os.path as path
 
-from ror.Dataset import Dataset, RORDataset
+from ror.Dataset import RORDataset
+from ror.dataset_constants import CRITERION_TYPES
 from ror.CalculationsException import CalculationsException
 from ror.RORParameters import RORParameters
 from ror.data_loader import RORParameter
@@ -384,7 +385,7 @@ class RORWindow:
         ttk.Label(information_box, text=f'Criteria:').pack(
             anchor=tk.N, fill=tk.X)
         for index, (criterion_name, criterion_type) in enumerate(self.dataset.criteria):
-            type_name = 'cost' if criterion_type == Dataset.CRITERION_TYPES['cost'] else 'gain'
+            type_name = 'cost' if criterion_type == CRITERION_TYPES['cost'] else 'gain'
             ttk.Label(
                 information_box, text=f'{index+1}. {criterion_name}, type: {type_name}').pack(anchor=tk.N, fill=tk.X)
         ttk.Separator(information_box, orient='horizontal').pack(fill='x')

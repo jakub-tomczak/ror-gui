@@ -5,8 +5,9 @@ from typing import Callable, List, Tuple
 from collections import namedtuple
 
 from ror.ror_solver import TIE_RESOLVERS
+from ror.WeightedResultAggregator import WeightedResultAggregator
 from utils.AlphaValueWithWeight import AlphaValueWithWeight
-from utils.tk.AlphaValueCountSliderFrame import DEFAULT_NUMBER_OF_ALPHA_VALUES, MAX_NUMBER_OF_ALPHA_VALUES, AlphaValueCountSliderFrame
+from utils.tk.AlphaValueCountSliderFrame import DEFAULT_NUMBER_OF_ALPHA_VALUES, AlphaValueCountSliderFrame
 from utils.tk.CustomDialog import CustomDialog
 from utils.ScrollableFrame import ScrollableFrame
 from utils.tk.TieResolverPicker import TieResolverPicker
