@@ -387,6 +387,7 @@ class RORWindow:
         information_frame = ttk.Frame(self.root, padding=2)
         information_frame.rowconfigure(0, weight=8)
         information_frame.rowconfigure(1, weight=1)
+        information_frame.columnconfigure(0, weight=1)
         information_frame.grid(
             column=1, row=0, sticky=(tk.N, tk.E, tk.S, tk.W))
         self.root_frames['information'] = information_frame
@@ -496,7 +497,7 @@ class RORWindow:
         ).grid(column=0, row=0)
         ttk.Button(
             master=information_box_bottom,
-            text='Save file',
+            text='Save problem',
             command=lambda: self.save_file()
         ).grid(column=1, row=0)
         ttk.Button(
