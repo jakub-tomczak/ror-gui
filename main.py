@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import StringVar, ttk
 from typing import Dict, List, Tuple
 import os.path as path
+import os
 
 from ror.Dataset import RORDataset
 from ror.dataset_constants import CRITERION_TYPES
@@ -12,9 +13,10 @@ from utils.AggregationWidget import AggregationWidget
 from utils.AlphaValuesFrame import AlphaValuesFrame
 from utils.DataTab import DataTab
 from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
+from utils.ScrollableFrame import ScrollableFrame
 from utils.tk.BordaAggregatorOptionsDialog import BordaCopelandAggregatorOptionsDialog, BordaCopelandAggregatorOptionsDialogResult
 from utils.tk.DefaultAggregatorOptionsDialog import DefaultAggregatorOptionsDialog, DefaultAggregatorOptionsDialogResult
-from utils.tk.WeightedAggregatorOptionsDialog import AlphaValueWithWeight, WeightedAggregatorOptionsDialog, WeightedAggregatorOptionsDialogResult
+from utils.tk.WeightedAggregatorOptionsDialog import WeightedAggregatorOptionsDialog, WeightedAggregatorOptionsDialogResult
 from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
 from utils.ResultWindow import ResultWindow
 from utils.Severity import Severity
@@ -31,6 +33,10 @@ from utils.tk.io_helper import save_model
 class RORWindow:
     def __init__(self) -> None:
         self.root: tk.Tk = tk.Tk()
+        # set style as early as possible
+        style = ThemedStyle(self.root)
+        style.set_theme('radiance') #clearlooks, equilux, arc
+
         self.simulation_text = tk.StringVar()
         self.log_console: ScrolledText = None
         self.table: DataTab = None
@@ -46,6 +52,7 @@ class RORWindow:
         self.aggregation_method: AggregationWidget = None
         self.information_box: tk.Frame = None
         self.main_tab: ttk.Notebook = None
+        self.example_files_list: ttk.Frame = None
         self.init_gui()
 
     def open_file(self, filename: str):
@@ -156,14 +163,6 @@ class RORWindow:
         self.root.geometry(f"{screen_width}x{screen_height}")
         self.root.title('ROR')
 
-        if self.debug:
-            self.open_default_file_button = ttk.Button(
-                text="Open buses_small.txt",
-                master=self.root,
-                command=lambda: self.open_file(
-                    '/Users/jjtom/Jakub/ror/ror/problems/buses_small.txt')
-            ).grid(column=1, row=1)
-
         self.main_tab = ttk.Notebook(self.root)
         self.main_tab.grid(row=0, column=0, sticky=tk.NSEW)
         self.table = DataTab(self.main_tab)
@@ -189,6 +188,61 @@ class RORWindow:
 
         # prepare menu
         self.init_menu()
+
+        self.display_list_with_example_files()
+        # uncomment to read example file at program startup and solve it
+        # self.open_file(self.get_example_files()[0][1])
+        # self.solve()
+
+    def get_example_files(self) -> List[str]:
+        root_dir = os.path.dirname(os.path.realpath(__file__))
+        example_files_root_dir = 'example_problems'
+        directory = os.path.join(root_dir, example_files_root_dir)
+        problem_file_extension = 'txt'
+        example_files: List[str] = []
+        if not os.path.exists(directory):
+            self.log(f'Failed to list example files. Directory with example files {directory} doesn\'t exist', Severity.WARNING)
+            return []
+        else:
+            files = os.listdir(directory)
+            for file in files:
+                if file.endswith(f'.{problem_file_extension}'):
+                    example_files.append((file, os.path.join(directory, file)))
+        if len(example_files) < 1:
+            self.log(f'Found no files with example problem in dir {directory}', Severity.WARNING)
+        else:
+            self.log(f'Found {len(example_files)} file(s) with example problem in dir {directory}')
+        return example_files
+
+    def display_list_with_example_files(self):
+        self.example_files_list = ttk.Frame(self.root)
+        self.example_files_list.grid(column=1, row=1, sticky=tk.NSEW)
+        ttk.Label(self.example_files_list, text='Example files with problems')\
+            .pack(anchor=tk.NW, fill=tk.X)
+        example_files: List[str] = self.get_example_files()
+        if len(example_files) < 1:
+            ttk.Label(self.example_files_list, text='No files found', font=('Arial', 10), foreground='red3')\
+                .pack(anchor=tk.NW, fill=tk.X)
+        else:
+            weights_frame = ttk.Frame(self.example_files_list)
+            weights_frame.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+            scroll = ScrollableFrame(weights_frame)
+            scroll.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+            # create all items
+            for idx, (file, file_path) in enumerate(example_files):
+                fr = ttk.Frame(scroll.frame, padding=5)
+                fr.rowconfigure(0, weight=2)
+                fr.rowconfigure(1, weight=1)
+                fr.columnconfigure(0, weight=7)
+                fr.columnconfigure(1, weight=3)
+                fr.pack(anchor=tk.NW, fill=tk.X, expand=1)
+                ttk.Label(fr, text=f'{idx+1}. Name: {file}').\
+                    grid(row=0, column=0, sticky=tk.W)
+                ttk.Label(fr, text=f'Path: {file_path}', font=('Arial', 10), wraplength=200).\
+                    grid(row=1, column=0, sticky=tk.W)
+                from functools import partial
+                ttk.Button(fr, text='Open', command=partial(self.open_file, file_path)).\
+                    grid(row=0, column=1, rowspan=2, sticky=tk.E)
 
     def clear_log(self):
         self.log_console.clear()
@@ -483,8 +537,6 @@ class RORWindow:
         self.log_console.add_text(data, color)
 
     def run(self):
-        style = ThemedStyle(self.root)
-        style.set_theme('radiance') #clearlooks, equilux, arc
         self.root.mainloop()
 
 
