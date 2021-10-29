@@ -26,6 +26,7 @@ from utils.time import get_log_time
 from utils.file_handler import get_file, open_file
 from datetime import datetime
 from ttkthemes import ThemedStyle
+import logging
 
 from utils.tk.io_helper import save_model
 
@@ -157,8 +158,9 @@ class RORWindow:
         self.root.columnconfigure(1, weight=1)
         self.root.rowconfigure(0, weight=5)
         self.root.rowconfigure(1, weight=1)
-        screen_width = int(self.root.winfo_screenwidth()*.9)
-        screen_height = int(self.root.winfo_screenheight()*.9)
+        screen_width = int(self.root.winfo_screenwidth()*.8)
+        screen_height = int(self.root.winfo_screenheight()*.8)
+        logging.info(f"Setting scrren to (w x h): {screen_width}x{screen_height}")
         self.root.minsize(screen_width, screen_height)
         self.root.geometry(f"{screen_width}x{screen_height}")
         self.root.title('ROR')
@@ -387,11 +389,11 @@ class RORWindow:
         information_frame.grid(
             column=1, row=0, sticky=(tk.N, tk.E, tk.S, tk.W))
         self.root_frames['information'] = information_frame
-        information_box = ttk.Frame(information_frame, padding=2)
+        information_box = ScrollableFrame(information_frame)
         information_box.grid(row=0, column=0, sticky=tk.NSEW)
         information_box_bottom = ttk.Frame(information_frame, padding=2)
         information_box_bottom.grid(row=1, column=0, sticky=tk.NSEW)
-        return information_box, information_box_bottom
+        return information_box.frame, information_box_bottom
 
     def try_to_validate_epsilion_value(self) -> Tuple[bool, float]:
         new_value = self.epsilion_value.get()
