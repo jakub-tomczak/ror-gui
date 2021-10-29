@@ -1,10 +1,9 @@
 from math import floor
 import tkinter as tk
 from tkinter import ttk
+from tkinter.filedialog import asksaveasfilename
 from typing import Callable, List, Tuple
-from pandas.core import accessor
 from ror.Dataset import RORDataset
-from ror.PreferenceRelations import PreferenceIntensityRelation, PreferenceRelation
 from ror.RORParameters import RORParameters
 from ror.RORResult import RORResult
 from ror.Relation import Relation
@@ -12,11 +11,9 @@ from ror.loader_utils import RORParameter
 from ror.ror_solver import ProcessingCallbackData
 from utils.ExplainAlternatives import ExplainAlternatives
 from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
-from ror.WeightedResultAggregator import WeightedResultAggregator
 from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
 
 from utils.ProgressBar import ProgressBar
-from utils.ScrollableFrame import ScrollableFrame
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
 from utils.Severity import Severity
@@ -24,7 +21,7 @@ from utils.tk.io_helper import save_model, save_model_latex
 from utils.type_aliases import LoggerFunc
 
 
-class ResultWindow(tk.Frame):
+class ResultWindow(ttk.Frame):
     def __init__(
             self,
             logger: Callable[[str, Severity], None],
@@ -33,14 +30,14 @@ class ResultWindow(tk.Frame):
             parameters: RORParameters,
             root: tk.Tk,
             close_callback: Callable[[tk.Frame], None] = None):
-        tk.Frame.__init__(self, master=root)
+        ttk.Frame.__init__(self, master=root)
         self.__logger: LoggerFunc = logger
         self.__window_object: tk.Tk = window_object
         self.__progress_bar: ProgressBar = None
         self.__results_data: Table = None
         self.__solution_properties_tab: tk.Frame = None
         self.__close_callback = close_callback
-        self.top_frame: tk.Frame = None
+        self.top_frame: ttk.Frame = None
         self.ranks_tab: ttk.Notebook = None
         self.final_image_frame: tk.Frame = None
         self.__overview: ttk.Notebook = None
@@ -148,6 +145,29 @@ class ResultWindow(tk.Frame):
         intensity_preferences.grid(row=0, column=1, sticky=tk.NSEW)
         return preferences_frame
 
+    def save_data(self, type: str):
+        if type not in ['csv', 'tex']:
+            self.__logger(f'Type {type} is not handled')
+            return
+        _filename = asksaveasfilename(
+            defaultextension=f".{type}",
+            title="Save dataset"
+        )
+            
+        if _filename is None or _filename == '':
+            self.__logger('Cancelled file saving')
+            return
+        try:
+            if type == 'tex':
+                result = self.__ror_result.save_result_to_latex(_filename)
+            else:
+                result = self.__ror_result.save_result_to_csv(_filename)
+        except Exception as e:
+            self.__logger(f'Failed to save file, error: {e}', Severity.ERROR)
+            return
+        self.__logger(f'Saved file as {result}')
+
+
     def set_result(self, result: RORResult, alternatives: List[str], parameters: RORParameters):
         # display all ranks
         if result is not None:
@@ -208,6 +228,15 @@ class ResultWindow(tk.Frame):
                 display_precision=parameters.get_parameter(RORParameter.PRECISION)
             )
             self.__results_data.pack(anchor=tk.N, fill=tk.BOTH, expand=1)
+            frame = ttk.Frame(data_tab)
+            frame.pack(anchor=tk.N, fill=tk.X, expand=1)
+            frame.rowconfigure(0, weight=1)
+            frame.columnconfigure(0, weight=1)
+            frame.columnconfigure(1, weight=1)
+            ttk.Button(frame, text='Save result to csv file', padding=10, command=lambda: self.save_data('csv'))\
+                .grid(row=0, column=0, sticky=tk.E)
+            ttk.Button(frame, text='Save result to latex file', padding=10, command=lambda: self.save_data('tex'))\
+                .grid(row=0, column=1, sticky=tk.W)
 
             self.__solution_properties_tab = ttk.Frame(self.__overview)
             self.__overview.add(self.__solution_properties_tab, text='Model properties')
@@ -232,12 +261,12 @@ class ResultWindow(tk.Frame):
                 buttons.columnconfigure(col, weight=1)
             ttk.Button(
                 buttons,
-                text='Save model',
+                text='Save problem',
                 command=lambda: self.__save_model()
             ).grid(row=0, column=1, sticky=tk.NSEW)
             ttk.Button(
                 buttons,
-                text='Save model to latex',
+                text='Save constraints to latex',
                 command=lambda: self.__save_model_to_tex()
             ).grid(row=0, column=2, sticky=tk.NSEW)
 
