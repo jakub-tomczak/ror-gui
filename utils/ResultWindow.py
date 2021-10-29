@@ -14,6 +14,10 @@ from ror.ror_solver import ProcessingCallbackData
 from utils.ExplainAlternatives import ExplainAlternatives
 from utils.PreferenceRelationsFrame import PreferenceRelationsFrame
 from utils.PreferenceIntensityRelationsFrame import PreferenceIntensityRelationsFrame
+from ror.DefaultResultAggregator import DefaultResultAggregator
+from ror.WeightedResultAggregator import WeightedResultAggregator
+from ror.BordaResultAggregator import BordaResultAggregator
+from ror.CopelandResultAggregator import CopelandResultAggregator
 
 from utils.ProgressBar import ProgressBar
 from utils.Table import Table
@@ -289,14 +293,31 @@ class ResultWindow(ttk.Frame):
                 self.__overview.add(tie_resolver_frame, text='Tie resolver result')
                 if isinstance(tie_resolver, BordaTieResolver):
                     # display
-                    BordaVotingResult(tie_resolver_frame, tie_resolver, result.parameters)\
+                    borda_voter = tie_resolver.voter
+                    BordaVotingResult(tie_resolver_frame, borda_voter, result.parameters)\
                         .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
                 elif isinstance(tie_resolver, CopelandTieResolver):
-                    CopelandVotingResult(tie_resolver_frame, tie_resolver, result.model.dataset, result.parameters)\
+                    copeland_voter = tie_resolver.voter
+                    CopelandVotingResult(tie_resolver_frame, copeland_voter, result.model.dataset, result.parameters)\
                         .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
                 else:
                     ttk.Label(tie_resolver_frame, text='Unknown tie resolver provided', foreground='red3')
                     self.__logger('Unknown tie resolver provided')
+
+            if result.results_aggregator is not None and not isinstance(result.results_aggregator, (DefaultResultAggregator, WeightedResultAggregator)):
+                result_aggregator_data_frame = ttk.Frame(self.__overview)
+                result_aggregator_data_frame.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+                self.__overview.add(result_aggregator_data_frame, text='Voting data')
+                if isinstance(result.results_aggregator, BordaResultAggregator):
+                    # display
+                    BordaVotingResult(result_aggregator_data_frame, result.results_aggregator.voter, result.parameters)\
+                        .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+                elif isinstance(result.results_aggregator, CopelandResultAggregator):
+                    CopelandVotingResult(result_aggregator_data_frame, result.results_aggregator.voter, result.model.dataset, result.parameters)\
+                        .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+                else:
+                    ttk.Label(result_aggregator_data_frame, text='Unknown result aggregator provided', foreground='red3')
+                    self.__logger('Unknown result aggregator provided')
         else:
             self.__logger('Result is none', Severity.ERROR)
 
