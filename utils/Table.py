@@ -44,7 +44,21 @@ class Table(tksheet.Sheet):
             data_str.append(new_row)
         self.set_sheet_data(data_str)
 
-    def set_pandas_data(self, data: pd.DataFrame, display_precision: int = 2):
+    def set_pandas_data(self, data: pd.DataFrame, display_precision: int = 2, headers=None, indices=None):
+        headers: List[str] = list(data.columns) if headers is None else headers
+        self.headers(headers)
+        rows: List[str] = list(data.index) if indices is None else indices
+        data = data.to_numpy()
+        
+        _data: List[List[str]] = []
+        for row_name, row_data in zip(rows, data):
+            _new_row = [row_name]
+            _new_row.extend([format_number(value, display_precision)
+                           for value in row_data])
+            _data.append(_new_row)
+        self.set_sheet_data(_data)
+
+    def set_alternatives_pandas_data(self, data: pd.DataFrame, display_precision: int = 2):
         headers = ['alternative']
         headers.extend([item[:12] for item in data.columns])
         self.headers(headers)

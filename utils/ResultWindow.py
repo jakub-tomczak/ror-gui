@@ -6,7 +6,9 @@ from typing import Callable, List, Tuple
 from ror.Dataset import RORDataset
 from ror.RORParameters import RORParameters
 from ror.RORResult import RORResult
-from ror.Relation import Relation
+from ror.BordaTieResolver import BordaTieResolver
+from ror.CopelandTieResolver import CopelandTieResolver
+from ror.NoTieResolver import NoTieResolver
 from ror.loader_utils import RORParameter
 from ror.ror_solver import ProcessingCallbackData
 from utils.ExplainAlternatives import ExplainAlternatives
@@ -17,6 +19,8 @@ from utils.ProgressBar import ProgressBar
 from utils.Table import Table
 from utils.image_helper import ImageDisplay
 from utils.Severity import Severity
+from utils.tk.BordaVotingResult import BordaVotingResult
+from utils.tk.CopelandVotingResult import CopelandVotingResult
 from utils.tk.io_helper import save_model, save_model_latex
 from utils.type_aliases import LoggerFunc
 
@@ -223,7 +227,7 @@ class ResultWindow(ttk.Frame):
             self.__results_data = Table(data_tab)
             ttk.Label(data_tab, text='Data - final result')\
                 .pack(anchor=tk.NW)
-            self.__results_data.set_pandas_data(
+            self.__results_data.set_alternatives_pandas_data(
                 result.get_result_table(),
                 display_precision=parameters.get_parameter(RORParameter.PRECISION)
             )
@@ -277,6 +281,22 @@ class ResultWindow(ttk.Frame):
                 alternatives
             )
             self.__overview.add(self.explain_alternatives_object, text='Explain position in rank')
+
+            tie_resolver = result.results_aggregator.tie_resolver
+            if tie_resolver is not None and not isinstance(tie_resolver, NoTieResolver):
+                tie_resolver_frame = ttk.Frame(self.__overview)
+                tie_resolver_frame.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+                self.__overview.add(tie_resolver_frame, text='Tie resolver result')
+                if isinstance(tie_resolver, BordaTieResolver):
+                    # display
+                    BordaVotingResult(tie_resolver_frame, tie_resolver, result.parameters)\
+                        .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+                elif isinstance(tie_resolver, CopelandTieResolver):
+                    CopelandVotingResult(tie_resolver_frame, tie_resolver, result.model.dataset, result.parameters)\
+                        .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+                else:
+                    ttk.Label(tie_resolver_frame, text='Unknown tie resolver provided', foreground='red3')
+                    self.__logger('Unknown tie resolver provided')
         else:
             self.__logger('Result is none', Severity.ERROR)
 
