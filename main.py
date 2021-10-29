@@ -177,13 +177,14 @@ class RORWindow:
             column=0, row=1, columnspan=log_console_columnspan, sticky=tk.NSEW)
         log_console_frame.rowconfigure(0, weight=1)
         log_console_frame.rowconfigure(1, weight=8)
+        log_console_frame.columnconfigure(0, weight=1)
         self.root_frames['log_console'] = log_console_frame
         ttk.Label(log_console_frame, text='Log window')\
-            .grid(row=0, column=0, sticky=(tk.NSEW))
+            .grid(row=0, column=0, sticky=tk.NSEW)
         self.log_console = ScrolledText(self.root,
             log_console_frame, height=10, state=tk.DISABLED)
         # update grid for log console
-        self.log_console.grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
+        self.log_console.grid(row=1, column=0, sticky=tk.NSEW)
 
         # by default set information box with no file opened
         self.hide_information_tab()
