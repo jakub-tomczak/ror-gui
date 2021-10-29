@@ -11,8 +11,11 @@ class ScrollableFrame(ttk.Frame):
         self.scrollbar = ttk.Scrollbar(self, orient='vertical', command=self.__move) # self.__move
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.scrollbar.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.canvas.create_window((0,0), window=self.frame, anchor=tk.NW)
+        # bg color for radiance theme
+        # source: https://github.com/TkinterEP/ttkthemes/blob/746afb81bdc1aa9f0053fd8af455bb9c2201ec69/ttkthemes/themes/radiance/radiance.tcl#L33
+        self.canvas["background"] = '#f6f4f2'
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y, expand=True)
+        self.canvas.create_window((0,0), window=self.frame)
         # update scrollregion after starting 'mainloop'
         # when all widgets are in canvas
         self.frame.bind("<Configure>", self.update_scrollregion)
