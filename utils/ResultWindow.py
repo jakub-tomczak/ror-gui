@@ -1,7 +1,7 @@
 from math import floor
 import tkinter as tk
 from tkinter import ttk
-from tkinter.filedialog import asksaveasfilename
+from tkinter.filedialog import askdirectory, asksaveasfilename
 from typing import Callable, List, Tuple
 from ror.Dataset import RORDataset
 from ror.RORParameters import RORParameters
@@ -32,7 +32,7 @@ from utils.type_aliases import LoggerFunc
 class ResultWindow(ttk.Frame):
     def __init__(
             self,
-            logger: Callable[[str, Severity], None],
+            logger: LoggerFunc,
             window_object: tk.Tk,
             dataset: RORDataset,
             parameters: RORParameters,
@@ -175,6 +175,35 @@ class ResultWindow(ttk.Frame):
             return
         self.__logger(f'Saved file as {result}')
 
+    def __pick_directory(self) -> None:
+        if self.__ror_result is None:
+            self.__logger(f'Failed to save tie resolver data - ROR result is None', Severity.ERROR)
+            return None
+        _dir = askdirectory(mustexist=False)
+        if _dir is None or _dir == '':
+            self.__logger(f'Failed to save tie resolver data - directory is invalid', Severity.ERROR)
+            return None
+        return _dir
+
+    def save_tie_resolver_data(self):
+        _dir = self.__pick_directory()
+        if _dir is None:
+            return
+        result = self.__ror_result.save_tie_resolvers_data(_dir)
+        if result is None:
+            self.__logger(f'Failed to save tie resolver data - no data was available', Severity.ERROR)
+        else:
+            self.__logger(f'Saved tie resolver data to: {", ".join(result)}')
+
+    def save_voting_data(self, save_voting_data_func: Callable[[str], List[str]]):
+        _dir = self.__pick_directory()
+        if _dir is None:
+            return
+        result = save_voting_data_func(_dir)
+        if result is None:
+            self.__logger(f'Failed to save voting data - no data was available', Severity.ERROR)
+        else:
+            self.__logger(f'Saved voting data to: {", ".join(result)}')
 
     def set_result(self, result: RORResult, alternatives: List[str], parameters: RORParameters):
         # display all ranks
@@ -291,6 +320,7 @@ class ResultWindow(ttk.Frame):
                 tie_resolver_frame = ttk.Frame(self.__overview)
                 tie_resolver_frame.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
                 self.__overview.add(tie_resolver_frame, text='Tie resolver result')
+                invalid_resolver = False
                 if isinstance(tie_resolver, BordaTieResolver):
                     # display
                     borda_voter = tie_resolver.voter
@@ -301,23 +331,43 @@ class ResultWindow(ttk.Frame):
                     CopelandVotingResult(tie_resolver_frame, copeland_voter, result.model.dataset, result.parameters)\
                         .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
                 else:
+                    invalid_resolver = True
                     ttk.Label(tie_resolver_frame, text='Unknown tie resolver provided', foreground='red3')
                     self.__logger('Unknown tie resolver provided')
+                if not invalid_resolver:
+                    # common for both resolvers
+                    from functools import partial
+                    ttk.Button(
+                        tie_resolver_frame,
+                        text='Save tie resolver data',
+                        command=self.save_tie_resolver_data
+                    ).pack(anchor=tk.NW)
 
             if result.results_aggregator is not None and not isinstance(result.results_aggregator, (DefaultResultAggregator, WeightedResultAggregator)):
                 result_aggregator_data_frame = ttk.Frame(self.__overview)
                 result_aggregator_data_frame.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
                 self.__overview.add(result_aggregator_data_frame, text='Voting data')
+                save_votes_func: Callable[[str], List[str]] = None
                 if isinstance(result.results_aggregator, BordaResultAggregator):
                     # display
                     BordaVotingResult(result_aggregator_data_frame, result.results_aggregator.voter, result.parameters)\
                         .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+                    save_votes_func = result.results_aggregator.voter.save_voting_data
                 elif isinstance(result.results_aggregator, CopelandResultAggregator):
                     CopelandVotingResult(result_aggregator_data_frame, result.results_aggregator.voter, result.model.dataset, result.parameters)\
                         .pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
+                    save_votes_func = result.results_aggregator.voter.save_voting_data
                 else:
                     ttk.Label(result_aggregator_data_frame, text='Unknown result aggregator provided', foreground='red3')
                     self.__logger('Unknown result aggregator provided')
+                if save_votes_func is not None:
+                    # common for both resolvers
+                    from functools import partial
+                    ttk.Button(
+                        result_aggregator_data_frame,
+                        text='Save voting data',
+                        command=partial(self.save_voting_data, save_votes_func)
+                    ).pack(anchor=tk.NW)
         else:
             self.__logger('Result is none', Severity.ERROR)
 
