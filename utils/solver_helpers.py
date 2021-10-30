@@ -21,7 +21,7 @@ def solve_problem(
         result = solve_model(
             dataset,
             parameters,
-            aggregation_method,
+            result_aggregator_name=aggregation_method,
             progress_callback=calculations_callback
         )
     except Exception as e:
