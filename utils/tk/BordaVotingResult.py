@@ -42,7 +42,7 @@ class BordaVotingResult(ttk.Frame):
         alternative_mean_position = [
             (alternative, mean_position)
             for alternative, mean_position
-            in self.__voter.alternative_to_mean_position.items()
+            in self.__voter.alternative_to_mean_votes.items()
         ]
         sorted_alternative_mean_position = sorted(
             alternative_mean_position,
