@@ -255,10 +255,10 @@ class ResultWindow(ttk.Frame):
 
             data_tab = ttk.Frame(self.__overview)
             data_tab.pack(anchor=tk.NW, fill=tk.BOTH, expand=1)
-            self.__overview.add(data_tab, text='Data')
+            self.__overview.add(data_tab, text='Calculated distances')
 
             self.__results_data = Table(data_tab)
-            ttk.Label(data_tab, text='Data - final result')\
+            ttk.Label(data_tab, text='Distances from alternatives to reference alternative calculated by solving the problem with ROR-distance method')\
                 .pack(anchor=tk.NW)
             self.__results_data.set_alternatives_pandas_data(
                 result.get_result_table(),
