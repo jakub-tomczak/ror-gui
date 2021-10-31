@@ -154,8 +154,8 @@ class RORWindow:
             label='Clear log', command=lambda: self.log_console.clear(), accelerator="F1")
 
     def init_gui(self):
-        self.root.columnconfigure(0, weight=75)
-        self.root.columnconfigure(1, weight=25, minsize=300)
+        self.root.columnconfigure(0, weight=70)
+        self.root.columnconfigure(1, weight=30, minsize=350)
         self.root.rowconfigure(0, weight=5)
         self.root.rowconfigure(1, weight=1)
         screen_width = int(self.root.winfo_screenwidth()*.8)
