@@ -163,7 +163,7 @@ class RORWindow:
         logging.info(f"Setting scrren to (w x h): {screen_width}x{screen_height}")
         self.root.minsize(screen_width, screen_height)
         self.root.geometry(f"{screen_width}x{screen_height}")
-        self.root.title('ROR')
+        self.root.title('ROR-distance solver')
 
         self.main_tab = ttk.Notebook(self.root)
         self.main_tab.grid(row=0, column=0, sticky=tk.NSEW)
