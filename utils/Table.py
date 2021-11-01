@@ -24,8 +24,8 @@ class Table(tksheet.Sheet):
 
     def set_data(self, data: Dataset, display_precision: int = 2):
         headers = ["id"]
-        headers.extend([criterion_name for (
-            criterion_name, _) in data.criteria])
+        headers.extend([f'{criterion_name} [{criterion_type}]' for (
+            criterion_name, criterion_type) in data.criteria])
         self.headers(newheaders=headers)
         # round data - numpy.tolist will convert data to float and the precision will be lost
         # therefore we can't use it
